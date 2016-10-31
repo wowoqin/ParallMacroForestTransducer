@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/ASTExpr.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/ASTPath.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/ASTPreds.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/ASTStep.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/AxisType.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/IASTVisitor.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/NodeTest.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/XPath/PathParser/QueryParser.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/actormodel/CacheActor.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/actormodel/TaskActor.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/State.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_1.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_2.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_3.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_4.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_5.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_6.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_7.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT1_8.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT2.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT2_1.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT2_2.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT2_3.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT2_4.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT3.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT3_1.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT3_2.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT3_3.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/StateT3_4.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/rules/WaitState.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/taskmodel/ActorTask.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/taskmodel/LinkList.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/taskmodel/Node.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/taskmodel/WaitTask.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/xml/sax/MySaxParser.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/xml/sax/SaxTest.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/test8.xml" charset="UTF-8" />
+  </component>
+</project>

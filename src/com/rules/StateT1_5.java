@@ -1,0 +1,141 @@
+package com.rules;
+
+import com.XPath.PathParser.ASTPath;
+import com.actormodel.TaskActor;
+import com.taskmodel.ActorTask;
+import com.taskmodel.WaitTask;
+
+import java.util.LinkedList;
+import java.util.Stack;
+
+/**
+ * Created by qin on 2015/10/10.
+ */
+public class StateT1_5 extends StateT1{
+    protected  State  _q1;//检查 后续 path
+
+    protected StateT1_5(ASTPath path,State q1){
+        super(path);
+        _q1=q1;
+    }
+
+    public static State TranslateState(ASTPath path){//重新创建T1-5
+        State q1=StateT1.TranslateStateT1(path.getRemainderPath());
+        return new StateT1_5(path,q1);
+    }
+
+    /*
+    * T1-5--每一个T1-5都有多个匹配结果，所以每一个开始标签一个list
+    * -- 输出：list中只有一个list，多个元素 -- {{wt1,wt2,wt3}}
+    * -- 上传：list中多个list，多个元素 -- {{wt1,wt2,wt3},{wt1,wt2,wt3},{wt1,wt2,wt3}}
+    * -- 返回给T1-5的结果的匹配都是相对于其最后一个list而言 && 结果返回了之后就检查淘汰--上传的时候就不用检查了
+    *  */
+
+    @Override
+    public void addWTask(WaitTask wtask){
+        this.list.add(new LinkedList<WaitTask>().add(wtask));
+    }
+
+    @Override
+    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException{
+        int layer = atask.getId();
+        String tag = atask.getObject().toString();
+        if((getLevel() == layer) && (tag.equals(_test))) {
+            System.out.println("T1-5.startElementDo中");
+            addWTask(new WaitTask(layer,true,null));
+            _q1.setLevel(layer + 1);
+            curactor.pushTaskDo(new ActorTask(layer,_q1,true));
+        }
+    }
+
+    @Override
+    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
+        int layer = atask.getId();
+        String tag = atask.getObject().toString();
+        // T1-5能遇到自己的结束标签，则T1-5.q1 已经弹栈了，而T1-5.q1 弹栈则说明 q1 已经检查完&&传回了结果，
+        // 所以不可能在遇到结束标签的时候还未处理返回结果
+        if (tag.equals(_test)) { //遇到自己的结束标签，若是要输出，则只有一个list
+            if(!list.isEmpty()){
+                if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
+                    System.out.println("T1-5是个XPath");
+                    LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(0);
+                    if(!llist.isEmpty()){
+                        WaitTask wtask = llist.get(0);
+                        if(wtask.hasReturned()){
+                            System.out.println("T1-5的path结果已处理完毕");
+                            for(WaitTask wwtask:llist){
+                                curactor.output(wwtask);
+                            }
+                        } else{  //还未处理返回结果
+                            System.out.println("T1-5的path结果还未处理");
+                        }
+                    }else{
+                        System.out.println("T1-5未找到匹配标记");
+                    }
+                }
+            }
+        }else if (layer == getLevel() - 1) { // 遇到上层结束标签
+            // (能遇到上层结束标签，即T1-5作为一个后续的path（T1-5 的时候也会放在stackActor中），T1-6~T1-8会被放在paActor中)
+            // 传递整个list中的所有list的size之和个个数
+            System.out.println("T1-5遇到上层结束标签-->传递结果");
+            Stack ss = curactor.getMyStack();
+            ActorTask task = (ActorTask)ss.peek();
+            boolean isInself = task.isInSelf();
+
+            if(!list.isEmpty()){
+                int num = 0;
+                WaitTask wtask = null;
+                for(int i=0;i<list.size();i++){
+                    LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(i);
+                    if(!llist.isEmpty()){
+                        num += llist.size();//上传的数量
+                        if(wtask == null)
+                            wtask = llist.get(0);
+                    }
+                }
+
+                if(num > 0){
+                    curactor.sendPathResult(new ActorTask(0, new Object[]{num, wtask}, isInself));
+                } else{
+                    curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                }
+
+            }else{
+                System.out.println("T1-5无上传结果");
+                curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+            }
+
+            //返回结果之后pop（T1-5），看当前栈顶
+            if(!ss.isEmpty()){
+                task = (ActorTask)(ss.peek());
+                State currstate = (State)task.getObject();
+                if(currstate instanceof StateT1_5){
+                    currstate.endElementDo(index, id, atask, curactor);
+                }
+            }else{
+                actorManager.detachActor(curactor);
+            }
+        }
+    }
+    /*处理返回的path结果
+    *   atask={num,tag}
+    *   此时T1-5的最后一个等待list中只有一个wt，则需要copy num-1 份
+    *
+    * */
+    @Override
+    public void pathMatchFunction(ActorTask atask) {
+        LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size() - 1);//最后一个list
+        Object[] obj = (Object[])atask.getObject();
+        int num = (Integer)obj[0];
+        if(num==0)
+            llist.clear();   //清空llist
+        else {
+            WaitTask wt = llist.get(0);
+            String tag = (String) obj[1];
+            wt.setPathR(tag);
+            for(int i = 0;i<num - 1;i++)
+                llist.add(wt);
+        }
+
+    }
+}

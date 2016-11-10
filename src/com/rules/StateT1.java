@@ -30,16 +30,13 @@ public class StateT1 extends State implements Cloneable {
             if (path.getRemainderPath().toString().equals("")){ //无后续路径
                 if (path.getFirstStep().getPreds().toString().equals("")){//无谓词
                     return StateT1_1.TranslateState(path);     //T1_1
-                }
-                else{
+                } else{
                     return StateT1_2.TranslateState(path);//有谓词
                 }
-            }
-            else {
-                if (path.getFirstStep().getPreds().toString().equals("")){//有后续路径，无谓词
+            } else {   //有后续路径，
+                if (path.getFirstStep().getPreds().toString().equals("")){    //无谓词
                     return StateT1_5.TranslateState(path);
-                }
-                else{
+                } else{
                     return StateT1_6.TranslateState(path);//有谓词
                 }
             }
@@ -50,8 +47,7 @@ public class StateT1 extends State implements Cloneable {
                 if (path.getFirstStep().getPreds().toString().equals("")) //无谓词
                     return StateT1_3.TranslateState(path);
                 else return StateT1_4.TranslateState(path);//有谓词
-            }
-            else {
+            } else {
                 if (path.getFirstStep().getPreds().toString().equals(""))//有后续路径，无谓词
                     return StateT1_7.TranslateState(path);
                 else return StateT1_8.TranslateState(path);//有谓词

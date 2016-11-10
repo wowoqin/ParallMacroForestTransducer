@@ -17,7 +17,7 @@ public  abstract class State  implements Cloneable {
     protected int level;                                 //当前应该匹配的标签的层数
     public DefaultMessage dmessage;                       // 中间生成的消息
     public static DefaultActorManager actorManager = DefaultActorManager.getDefaultInstance();
-    public static Map<String,TaskActor> actors = new HashMap<String, TaskActor>();
+    public static HashMap<String,TaskActor> actors = new HashMap<String, TaskActor>();
 
     protected LinkedList list = new LinkedList();  //每一个 state 有一个 list，存放其 wt
 

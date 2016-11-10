@@ -52,25 +52,24 @@ public class StateT1_8 extends StateT1 {
             System.out.println("T1-8.startElementDo中");
             // 在 tlist 中添加需要等待匹配的任务模型
             addWTask(new WaitTask(layer, null, null));
-            String name=((Integer)this._predstack.hashCode()).toString().concat("T1-8.prActor");
+            String name = ((Integer)this._predstack.hashCode()).toString().concat("T1-8.prActor");
 
-            if (this._predstack.isEmpty()) {  // 若predsActor 还没有创建 --> _predstack 一定为空
+            if (this._predstack.isEmpty()) {// 若predstack 为空
                 System.out.println("T1-8.test匹配 && 谓词actor == null");
-                if (this._predstack.isEmpty()) {// 若predstack 为空
-                    Actor actor = actorManager.createAndStartActor(TaskActor.class, name);
-                    _q3.setLevel(layer + 1);
-                    dmessage = new DefaultMessage("res&&push", new Object[]{this._predstack, new ActorTask(layer, _q3, false)});
-                    actorManager.send(dmessage, curactor, actor);
-                } else {  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
-                    Actor actor = actors.get(name);
-                    State currQ = (State) _q3.copy();
-                    currQ.setLevel(layer + 1);
-                    dmessage = new DefaultMessage("push", new ActorTask(layer, currQ, false));
-                    actorManager.send(dmessage, curactor, actor);
-                }
+                Actor actor = actorManager.createAndStartActor(TaskActor.class, name);
+                _q3.setLevel(layer + 1);
+                dmessage = new DefaultMessage("res&&push", new Object[]{this._predstack, new ActorTask(layer, _q3, false)});
+                actorManager.send(dmessage, curactor, actor);
+            } else {  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
+                Actor actor = actors.get(name);
+                State currQ = (State) _q3.copy();
+                currQ.setLevel(layer + 1);
+                dmessage = new DefaultMessage("push", new ActorTask(layer, currQ, false));
+                actorManager.send(dmessage, curactor, actor);
             }
 
-            name=((Integer)this._pathstack.hashCode()).toString().concat("T1-8.paActor");
+
+            name = ((Integer)this._pathstack.hashCode()).toString().concat("T1-8.paActor");
             if(this._pathstack.isEmpty()){  // 若pathActor 还没有创建 --> _pathstack 一定为空
                 System.out.println("T1-8.test匹配 && pathactor == null");
                 Actor actor = actorManager.createAndStartActor(TaskActor.class, name);
@@ -82,7 +81,7 @@ public class StateT1_8 extends StateT1 {
                 Actor actor=actors.get(name);
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
-                dmessage=new DefaultMessage("push",new ActorTask(layer,currQ,false));
+                dmessage = new DefaultMessage("push",new ActorTask(layer,currQ,false));
                 actorManager.send(dmessage, curactor, actor);
             }
         }
@@ -94,7 +93,7 @@ public class StateT1_8 extends StateT1 {
         String tag = atask.getObject().toString();
 
         if (tag.equals(_test)) {  // 遇到自己的结束标签，检查
-            if(!list.isEmpty()) {//至少还是有结果的
+            if(!list.isEmpty()) {   //至少还是有结果的
                 LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size()-1);
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     System.out.println("T1-8是个XPath");
@@ -130,6 +129,7 @@ public class StateT1_8 extends StateT1 {
                         }
                     }else{
                         System.out.println("T1-8未找到匹配标记,path/pred匹配失败！");
+                        list.remove();   //删除这个为空的llist
                     }
                 }else{ //肯定是要上传的，但是若此时还未处理path的返回结果，就该等待先处理--最后一个llist中的元素
                     System.out.println("T1-8是后续path");
@@ -157,6 +157,9 @@ public class StateT1_8 extends StateT1 {
                                 return; //中断此次处理--先处理返回的结果
                             }
                         }
+                    }else{
+                        System.out.println("T1-8未找到匹配标记");
+                        list.remove();   //删除这个为空的llist
                     }
                 }
             }else{
@@ -181,18 +184,21 @@ public class StateT1_8 extends StateT1 {
                             wtask = llist.get(0);
                     }
                 }
+
                 if(num > 0){
                     curactor.sendPathResult(new ActorTask(0,new Object[]{num,wtask},isInself));
                     if(!ss.isEmpty()){
                         task = (ActorTask)(ss.peek());
                         State currstate = (State)task.getObject();
                         if(currstate instanceof StateT1_5){
-                            currstate.endElementDo(index,id,atask,curactor);
+                            dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                            actorManager.send(dmessage, curactor, curactor);
                         }else if(currstate instanceof StateT1_8){
                             //T1-7作为AD轴test的后续path，即T1-7/T1-8
                             curactor.processSameADPath(new Object[]{num,wtask});
                         }
                     }else{
+                        actors.remove(curactor.getName());
                         actorManager.detachActor(curactor);
                     }
                     return;
@@ -209,9 +215,11 @@ public class StateT1_8 extends StateT1 {
                 task = (ActorTask)(ss.peek());
                 State currstate = (State)task.getObject();
                 if(currstate instanceof StateT1_5){
-                    currstate.endElementDo(index,id,atask,curactor);
+                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    actorManager.send(dmessage, curactor, curactor);
                 }
             }else{
+                actors.remove(curactor.getName());
                 actorManager.detachActor(curactor);
             }
         }
@@ -253,7 +261,7 @@ public class StateT1_8 extends StateT1 {
                 WaitTask wt = llist.get(0);
                 String tag = (String) obj[1];
                 wt.setPathR(tag);
-                for(int i = 0;i<num - 1;i++)
+                for(int i = 1;i<num;i++)
                     llist.add(wt);
             }
         }

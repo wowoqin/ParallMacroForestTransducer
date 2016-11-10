@@ -90,6 +90,7 @@ public class TaskActor extends AbstractActor {
                 int index = (Integer)data[0];    //根据index找到链表中的数据块
                 int arrid = (Integer)data[1];
                 Node node = linkList.getNode(index);   //一块只取一次--for循环之前得到
+
                 for(int i = arrid;i<100;i++){          //从给定的id开始遍历处理标签
                     if(this.getMessageCount()>0){       //已经收到了返回结果
                         DefaultMessage message1 = new DefaultMessage("nodeID",new Object[]{index,i});

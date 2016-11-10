@@ -2,6 +2,7 @@ package com.rules;
 
 import com.XPath.PathParser.ASTPath;
 import com.actormodel.TaskActor;
+import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
@@ -40,12 +41,12 @@ public class StateT1_3 extends StateT1 implements Cloneable {
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     System.out.println("T1-3是整个XPath");
-                    WaitTask wtask = (WaitTask)list.get(list.size()-1);//每次输出最后一个元素
+                    WaitTask wtask = (WaitTask)list.get(list.size()-1);  //每次输出最后一个元素
                     curactor.output(wtask);
-                }
-            }else{
-                System.out.println("T1-3未找到匹配标记");
-            }
+                }else
+                    System.out.println("T1-3是个后续path");
+            }else
+                System.out.println("T1-3未找到匹配的开始标记");
         }else if (layer == getLevel() - 1) { // 遇到上层结束标签--遇到的是最开始T1-3的上层结束标签
             // T1-5 时，与T1-5 放在同一个栈，T1-6~T1-8 放在pathstack
             System.out.println("T1-3遇到上层结束标签-->传递结果");
@@ -60,9 +61,11 @@ public class StateT1_3 extends StateT1 implements Cloneable {
                 curactor.sendPathResult(new ActorTask(0, new Object[]{num, wtask}, isInself));
                 if(!ss.isEmpty()){
                     task = (ActorTask)(ss.peek());
-                    State currstate =(State)task.getObject();
+                    State currstate = (State)task.getObject();
                     if(currstate instanceof StateT1_5){
-                        currstate.endElementDo(index,id,atask,curactor);
+                        //此处选择发送消息是因为返回的消息肯定还未处理--先处理返回的path结果
+                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        actorManager.send(dmessage, curactor, curactor);
                     }else if(currstate instanceof StateT1_3){
                         //T1-3作为 AD 轴test的后续path，即T1-7/T1-8
                         curactor.processSameADPath(new Object[]{num,wtask});
@@ -72,7 +75,7 @@ public class StateT1_3 extends StateT1 implements Cloneable {
                     actorManager.detachActor(curactor);
                 }
             }else{
-                System.out.println("T1-3未找到匹配标记");
+                System.out.println("T1-3未找到匹配的开始标记--上传NF");
                 curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
             }
         }

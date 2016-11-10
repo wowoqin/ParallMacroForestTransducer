@@ -2,6 +2,7 @@ package com.rules;
 
 import com.XPath.PathParser.ASTPath;
 import com.actormodel.TaskActor;
+import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
@@ -18,7 +19,7 @@ public class StateT1_2 extends StateT1 {
         _q3 = q3;
     }
 
-    public static State TranslateState(ASTPath path) {//重新创建T1-2
+    public static State TranslateState(ASTPath path) {   //重新创建T1-2
         State q3 = StateT3.TranslateStateT3(path.getFirstStep().getPreds());
         return new StateT1_2(path, q3);
     }
@@ -34,7 +35,15 @@ public class StateT1_2 extends StateT1 {
             curactor.pushTaskDo(new ActorTask(layer, _q3, true));
         }
     }
-    /*  早检查成功 --已处理
+    /*
+    * 在设置完返回的结果之后不满足的就可以删除了--所以在这里剩下的都是满足条件的：
+    *   T1-1 在任何情况下都只有一个list：
+    *              上传 (多个)-- 遇到上层结束标签，弹栈、上传整个list、栈顶再执行一次endDo
+    *              输出 (一个)-- 输出list.get(0) && 清空list  (stack.size()==1 && mainActor)
+    *   结束标记--检查谓词是否返回，若没：等待
+    *
+    *   因为在每一个标签进行处理的时候，首先检查messages.count >0否，若消息队列有消息，先处理返回的其他消息；
+    *   早检查成功 --已处理
     *   刚检查成功 --已处理
     *   检查失败   --才返回false，肯定没处理
     * */
@@ -47,26 +56,36 @@ public class StateT1_2 extends StateT1 {
         if(tag.equals(_test)){//遇到自己的结束标签--说明谓词已经弹栈
             System.out.println("T1-2遇到自己结束标签--谓词已弹栈-->已发回结果");
             if(!list.isEmpty()){
-                WaitTask wtask = (WaitTask)list.get(0);
-                if(wtask.hasReturned()){
-                    System.out.println("T1-2谓词结果已处理完毕");
-                    if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
-                        System.out.println("T1-2是整个XPath");
+                if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
+                    System.out.println("T1-2是整个XPath");
+                    WaitTask wtask = (WaitTask)list.get(0);
+                    if(wtask.hasReturned()){
+                        System.out.println("T1-2谓词结果已处理完毕");
                         curactor.output(wtask);
+                    }else {// 谓词已经弹栈并返回了消息，在处理下一个标签之前会检查actor的消息队列的消息数，先处理返回结果
+                        System.out.println("T1-2谓词返回结果还未处理");
+                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        actorManager.send(dmessage, curactor, curactor);
                     }
-                }else{//T1-2不存在结束标签比谓词结果先处理的情况--因为要遇到自己的结束标签，
-                     // 谓词已经弹栈并返回了消息，在处理下一个标签之前会检查actor的消息队列的消息数，先处理返回结果
-                    System.out.println("T1-2谓词返回结果还未处理");
+                }else{
+                    System.out.println("T1-2是后续path--需检查最后一个 wt 的谓词结果是否返回");
+                    WaitTask wtask = (WaitTask)list.get(list.size()-1);
+                    if(!wtask.hasReturned()){
+                        System.out.println("T1-2谓词返回结果还未处理");
+                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        actorManager.send(dmessage, curactor, curactor);
+                    }
                 }
             }else{
                 System.out.println("T1-2未找到匹配标记 || T1-2谓词返回false");
             }
-        }else if (layer == getLevel() - 1) { // 遇到上层结束标签
+        }else if (layer == getLevel() - 1) {   // 遇到上层结束标签
             // T1-5 时，与T1-5 放在同一个栈，T1-6~T1-8 放在pathstack
             System.out.println("T1-2遇到上层结束标签-->传递结果");
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
+
             if(!list.isEmpty()){
                 WaitTask wtask = (WaitTask)list.get(0);
                 //传回整个list，pop栈顶
@@ -76,11 +95,14 @@ public class StateT1_2 extends StateT1 {
                     actorManager.detachActor(curactor);
                 }else{                      // T1-2 作为 T1-5 的后续 path
                     State state =(State)((ActorTask)(ss.peek())).getObject();
-                    if(state instanceof StateT1_5)
-                        state.endElementDo(index,id,atask,curactor);
+                    if(state instanceof StateT1_5){
+                        //此处选择发送消息是因为返回的消息肯定还未处理--先处理返回的path结果
+                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        actorManager.send(dmessage, curactor, curactor);
+                    }
                 }
             }else{
-                System.out.println("T1-2未找到匹配标记");
+                System.out.println("T1-2未找到匹配标记 || T1-2谓词返回false--发送 NF");
                 curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
             }
         }
@@ -92,11 +114,11 @@ public class StateT1_2 extends StateT1 {
     @Override
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
         Boolean pred = (Boolean)atask.getObject();
-        WaitTask wt = (WaitTask)list.get(list.size()-1);//最后一个元素
-        if(pred){ //true
+        WaitTask wt  = (WaitTask)list.get(list.size()-1);//最后一个元素
+        if(pred){   //true
             wt.setPredR(pred);
-        }else{  //false
-            list.remove();//若是要输出--list不为空||若是要上传，留下的只是满足条件的
+        }else{     //false
+            list.remove();     //若是要输出--list不为空||若是要上传，留下的只是满足条件的
         }
     }
 }

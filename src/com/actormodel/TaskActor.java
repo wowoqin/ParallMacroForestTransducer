@@ -36,6 +36,27 @@ public class TaskActor extends AbstractActor {
         return resActor;
     }
 
+
+    @Override
+    public void activate() {
+        super.activate();
+    }
+    @Override
+    public void deactivate() {
+        super.deactivate();
+    }
+    @Override
+    public boolean willReceive(String subject) {
+        return super.willReceive(subject);
+    }
+    @Override
+    public int getMaxMessageCount() {
+        return super.getMaxMessageCount();
+    }
+
+    @Override
+    protected void runBody() {}
+
 //        发送的消息--返回的结果（T/F/result）
 //        接收的消息--输入用完--等待
 //                 --数据块的引用--处理标签
@@ -46,6 +67,7 @@ public class TaskActor extends AbstractActor {
         sleep(1);
         String subject = message.getSubject();
         if("res&&push".equals(subject)){                // data是一个数组：data = {stack,task}--初始化
+            System.out.println("新的actor的初始操作--res&&push");
             State.actors.put(this.getName(),this);      //actors.put(this)
             Object[] datas = (Object[]) message.getData();
             this.setResActor(message.getSource());
@@ -62,7 +84,8 @@ public class TaskActor extends AbstractActor {
                 e.printStackTrace();
             }
         }else if("wait".equals(subject)){
-            //输入用完--数据块没了，等 1s，然后继续发送修改index 的请求，看是否能成功吧
+            //输入用完--数据块没了，等 10ms，然后继续发送修改index 的请求，看是否能成功吧
+            System.out.println(this.getName() + " 接到消息：cacheactor 中输入用完--需要等待");
             Object[] data = (Object[])message.getData();
 
             try {
@@ -70,18 +93,20 @@ public class TaskActor extends AbstractActor {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            DefaultMessage message1 = new DefaultMessage("modifyIndex",(Integer)data[0]);
+            DefaultMessage message1 = new DefaultMessage("modifyIndex",data[0]);
             this.getManager().send(message1, this, State.actors.get("cacheActor"));
 
         }else if("append".equals(subject)){
-            this.appendPredR((Object[]) message.getData());
+            this.appendPathR((Object[]) message.getData());
         }else{
             Stack  ss = this.getMyStack();
             State state = (State)((ActorTask)ss.peek()).getObject();  //栈顶 state
             // 收到actor的返回结果之后
             if("repred".equals(subject)){                      //T/F
+                System.out.println(this.getName() + " 收到predR");
                 state.predMatchFunction((ActorTask)message.getData(),this);
             }else if("repath".equals(subject)){                //result
+                System.out.println(this.getName() + " 收到pathR");
                 state.pathMatchFunction((ActorTask)message.getData());
             }else if("nodeID".equals(subject)){               //数据块的引用(index+标签id)
                 //从该Node中的第id个标签开始处理--交给栈顶 q
@@ -90,26 +115,32 @@ public class TaskActor extends AbstractActor {
                 int index = (Integer)data[0];    //根据index找到链表中的数据块
                 int arrid = (Integer)data[1];
                 Node node = linkList.getNode(index);   //一块只取一次--for循环之前得到
+                System.out.println(this.getName() + " 收到数据块的 nodeID =" + index +"--for循环处理标签");
 
-                for(int i = arrid;i<100;i++){          //从给定的id开始遍历处理标签
+                for(int i = arrid;i<2;i++){          //从给定的id开始遍历处理标签
                     if(this.getMessageCount()>0){       //已经收到了返回结果
+                        System.out.println(this.getName() + " for循环处理标签过程中消息队列长度 > 0，优先处理其他结果");
                         DefaultMessage message1 = new DefaultMessage("nodeID",new Object[]{index,i});
                         getManager().send(message1,this,this);
                         return; //中断此次处理--先处理返回的结果
                     }else{
-                        ActorTask atask = node.getAtask()[i];//(layer,qName,true)
+                        state = (State)((ActorTask)ss.peek()).getObject();  //每次更新栈顶 state
+                        ActorTask atask = node.getAtask()[i];   //(layer,qName,true)
                         if(atask.isInSelf()){  //开始标签
+                            System.out.println(this.getName() + " 的for循环中处理开始标签");
                             try {
                                 state.startElementDo(index,i,atask,this);
                             } catch (CloneNotSupportedException e) {
                                 e.printStackTrace();
                             }
                         }else{    //结束标签
+                            System.out.println(this.getName() + " 的for循环中处理结束标签");
                             state.endElementDo(index,i,atask,this);
                         }
-                        if(i==99){   //处理完当前数据块，需要指向下一块数据了
-                            DefaultMessage message1 = new DefaultMessage("modifyIndex",index);
-                            this.getManager().send(message1,this, State.actors.get("cacheActor"));
+                        if(i==1){   //处理完当前数据块，需要指向下一块数据了
+                            System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
+                            DefaultMessage message1 = new DefaultMessage("modifyIndex",++index);
+                            this.getManager().send(message1, this, State.actors.get("cacheActor"));
                         }
                     }
                 }
@@ -121,6 +152,7 @@ public class TaskActor extends AbstractActor {
     public void pushTaskDo(ActorTask actorTask) throws CloneNotSupportedException {
         Stack curstack=this.getMyStack();
         State state=(State)(actorTask.getObject());     // 要压栈的 state
+        System.out.println(this.getName() + " 进行压栈操作," + state +" 入栈");
 
         if(state instanceof StateT3) {  //T3
             int id = actorTask.getId();
@@ -164,6 +196,7 @@ public class TaskActor extends AbstractActor {
     }
 
     public void popFunction(){
+        System.out.println(this.getName() + " 弹栈操作");
         Stack currStack = this.getMyStack();
         if(!currStack.isEmpty()){
             currStack.pop();
@@ -173,10 +206,11 @@ public class TaskActor extends AbstractActor {
     public void sendPredsResult(ActorTask actorTask){   // 谓词检查成功，上传结果（id，true）给相应的 wt
         DefaultMessage message=new DefaultMessage("repred",actorTask);
         if(actorTask.isInSelf()){
+            System.out.println(this.getName() + " 上传谓词结果给自己");
             this.getManager().send(message, this, this);
         } else {
-            TaskActor res = (TaskActor)this.getResActor();
-            this.getManager().send(message, this, res);
+            System.out.println(this.getName() + " 上传谓词结果给上级");
+            this.getManager().send(message, this, this.getResActor());
         }
     }
 
@@ -184,15 +218,17 @@ public class TaskActor extends AbstractActor {
         this.popFunction();//上传结果的时候肯定是遇到了上层结束标签，当前栈顶弹栈
         DefaultMessage message = new DefaultMessage("repath", actorTask);
         if(actorTask.isInSelf()){
+            System.out.println(this.getName() + " 上传path结果给自己");
             getManager().send(message, this, this);
         }else{
+            System.out.println(this.getName() + " 上传path结果给上级");
             TaskActor actor = (TaskActor)this.getResActor(); //上级actor
             State state = (State)((ActorTask)(actor.getMyStack()).peek()).getObject();//上级actor的栈顶 state
             if(state instanceof StateT1){
                 getManager().send(message, this, actor);
             }else {
                 //栈顶要是谓词(T1-6.preds)，则标签是传不过去的-->
-                System.out.println("栈顶不是T1，无法完成path结果上传的操作！！！");
+                System.out.println(" 栈顶不是T1，无法完成path结果上传的操作！！！");
                 return false;
             }
         }
@@ -200,13 +236,13 @@ public class TaskActor extends AbstractActor {
     }
 
     public void processSameADPred(){
+        System.out.println(this.getName() +" processSameADPred 操作");
         Stack currstack = this.getMyStack();
         if(!currstack.isEmpty()){  //传过去的结果只会对list的最后一个元素做检查--所以id就起到关键性的作用
             ActorTask task = (ActorTask)currstack.peek();
             int id = task.getId(); // 当前栈顶 taskmodel 的 id
             boolean isInSelf = task.isInSelf();
-            this.popFunction();
-            sendPredsResult(new ActorTask(id,true,isInSelf));
+            this.sendPredsResult(new ActorTask(id, true, isInSelf));
         }
         //栈为空
         this.getManager().detachActor(this);
@@ -214,14 +250,15 @@ public class TaskActor extends AbstractActor {
 
     public void processSameADPath(Object[] wt) {
         //找到上级actor当前栈顶的state的list---多个，最后一个list中add这些成功的 wt
+        System.out.println(this.getName() +" processSameADPath 操作");
         DefaultMessage message = new DefaultMessage("append",wt);
         getManager().send(message,this,resActor);
     }
 
-    public void appendPredR(Object[] wt){  //追加AD轴path的检查结果--
+    public void appendPathR(Object[] wt){  //追加AD轴path的检查结果--
         int num = (Integer)wt[0];
         WaitTask waitTask = (WaitTask)wt[1];
-        while(!myStack.isEmpty()){
+        if(!myStack.isEmpty()){
             State state = (State)((ActorTask)getMyStack().peek()).getObject();
             for(int i=0;i<num;i++){
                 state.addWTask(waitTask);

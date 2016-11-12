@@ -30,7 +30,7 @@ public class MySaxParser<T> extends DefaultHandler {
     protected DefaultMessage message;
     protected Actor cacheActor;
     protected Actor mainActor;
-    protected ActorTask[] array = new ActorTask[100];
+    protected ActorTask[] array = new ActorTask[2];
     protected int id = 0;    //元素的索引
     protected int index = 0; //数据块的索引
 
@@ -50,7 +50,8 @@ public class MySaxParser<T> extends DefaultHandler {
     @Override
     public void startDocument() throws SAXException {
         System.out.println("----------- Start Document ----------");
-        cacheActor = manager.createActor(CacheActor.class,"cacheActor");
+        cacheActor = manager.createAndStartActor(CacheActor.class,"cacheActor");
+        State.actors.put(cacheActor.getName(),cacheActor);
         layer = 0;
         super.startDocument();
     }
@@ -71,6 +72,7 @@ public class MySaxParser<T> extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
+        layer--;
         if(id == array.length-1){
             array[id] = new ActorTask(layer,qName,false);
             message = new DefaultMessage("node",new ActorTask(index++,array,true));
@@ -80,7 +82,6 @@ public class MySaxParser<T> extends DefaultHandler {
         }else{
             array[id++] = new ActorTask(layer,qName,false);
         }
-        layer--;
     }
 
     @Override

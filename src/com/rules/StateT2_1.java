@@ -26,12 +26,14 @@ public class StateT2_1 extends StateT2 {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
-        if(layer==getLevel() && tag.equals(_test)){
+        if(layer == getLevel() && tag.equals(_test)){
+            System.out.println("T2-1.startElementDo--T2-1匹配开始标签");
             ActorTask task = (ActorTask)curactor.getMyStack().peek();//栈顶
             int idd = task.getId();
             boolean isInSelf = task.isInSelf();
 
             if(!list.isEmpty()){    //T3-1
+                System.out.println("T3-2.T2-1 检查成功，需要换为 qw");
                 WaitState waitState = new WaitState();
                 waitState.setLevel(((State) atask.getObject()).getLevel());
                 waitState.list.add(this.list.get(0));
@@ -42,9 +44,11 @@ public class StateT2_1 extends StateT2 {
                 curactor.sendPredsResult(new ActorTask(idd, true, true));//确定是给自己的--当前栈顶已经是 qw
             }else{  //T2-1
                 //发送谓词结果 && pop 当前栈顶
+                System.out.println("T2-1 检查成功，pop && 返回 true");
                 curactor.popFunction();
                 curactor.sendPredsResult(new ActorTask(idd, true, isInSelf));
                 if(curactor.getMyStack().isEmpty()){
+                    System.out.println("T2-1所在的当前 actor 为空，detach");
                     actors.remove(curactor.getName());
                     actorManager.detachActor(curactor);
                 }
@@ -55,6 +59,7 @@ public class StateT2_1 extends StateT2 {
     @Override
     public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
         if (atask.getId() == getLevel() - 1) {  //遇到上层结束标签--检查失败
+            System.out.println("T2-1遇到上层结束标签--自己检查失败--上传false");
             Stack ss = curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());//栈顶(id,T2-1,isInself)
             int idd = task.getId();

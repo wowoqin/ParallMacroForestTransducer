@@ -53,9 +53,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
     @Override
     public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
-        int layer = atask.getId();
-
-        if (layer == getLevel() - 1) {
+        if (atask.getId() == getLevel() - 1) {
             Stack ss=curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());//(id,T2-4,isInself)
             int idd = task.getId();
@@ -87,6 +85,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
         Boolean pred = (Boolean)atask.getObject();
         WaitTask wt = (WaitTask)list.get(list.size()-1);//最后一个元素
+
         if(pred){    //true
             if(atask.isInSelf()){  //来自自己--设置的肯定是predR
                 wt.setPredR(pred);

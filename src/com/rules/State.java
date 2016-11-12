@@ -1,6 +1,7 @@
 package com.rules;
 
 import com.actormodel.TaskActor;
+import com.ibm.actor.Actor;
 import com.ibm.actor.DefaultActorManager;
 import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
@@ -8,7 +9,6 @@ import com.taskmodel.WaitTask;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 /**
  * Created by qin on 2015/10/10.
@@ -17,7 +17,7 @@ public  abstract class State  implements Cloneable {
     protected int level;                                 //当前应该匹配的标签的层数
     public DefaultMessage dmessage;                       // 中间生成的消息
     public static DefaultActorManager actorManager = DefaultActorManager.getDefaultInstance();
-    public static HashMap<String,TaskActor> actors = new HashMap<String, TaskActor>();
+    public static HashMap<String,Actor> actors = new HashMap();
 
     protected LinkedList list = new LinkedList();  //每一个 state 有一个 list，存放其 wt
 

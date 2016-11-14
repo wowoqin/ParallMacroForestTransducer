@@ -1,6 +1,7 @@
 package com.rules;
 
 import com.actormodel.TaskActor;
+import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
@@ -12,13 +13,13 @@ import java.util.Stack;
 public class WaitState extends State {
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {
+        return true;
     }
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
         // 自己能遇到上层结束标签，谓词检查失败，弹栈 && remove 等待当前栈顶 qw 结果的 wt
         int layer = atask.getId();
-        String tag = atask.getObject().toString();
 
         if (layer == getLevel() - 1) {
             Stack ss = curactor.getMyStack();
@@ -35,13 +36,13 @@ public class WaitState extends State {
                 State state=((State) (task.getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
-                    state.endElementDo(index,id,atask,curactor);
+                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    actorManager.send(dmessage, curactor, curactor);
+                    return false;
                 }
-            }else {
-                actors.remove(curactor);
-                actorManager.detachActor(curactor);
             }
         }
+        return true;
     }
 
     @Override
@@ -57,6 +58,7 @@ public class WaitState extends State {
         //(id,true,null)--所以返回结果都是来自T3.preds'--设置的肯定是pathR
         Boolean pred = (Boolean)atask.getObject();
         WaitTask wt = (WaitTask)list.get(0);   //只有一个元素
+        System.out.print("qw 处理 predR，");
         if(pred){    //true
             wt.setPathR(pred);
 

@@ -21,7 +21,8 @@ public class CacheActor extends AbstractActor {
         String subject = message.getSubject();
 
         if(subject.equals("node")){  //收到数据块
-            System.out.println(this.getName() + " 中添加第" + ++index + "块数据块");
+//            System.out.println(this.getName() + " 中添加第" + ++index + "块数据块");
+            ++index;
             linkList.addNode((ActorTask[]) (((ActorTask) message.getData()).getObject()));
             if(linkList.getSize() == 1){    //第一次发送
                 System.out.println(this.getName() + " 第一次发送数据块给 mainActor");
@@ -31,13 +32,13 @@ public class CacheActor extends AbstractActor {
         }else if(subject.equals("modifyIndex")) {     //要求修改next的时候
             int index = (Integer) message.getData();  //当前的处理完的数据块的index
             if (index <= linkList.getSize()) {
-                System.out.println(this.getName() + "被要求修改数据块的 index && 能够修改index");
+                System.out.println(this.getName() + "被 "+message.getSource().getName()+" 要求修改数据块的 index && 能够修改index");
                 DefaultMessage messages = new DefaultMessage("nodeID", new Object[]{index, 0});
                 manager.send(messages, this, message.getSource());
             } else {  //输入没了
-                System.out.println(this.getName() + "被要求修改数据块的 index && 修改index 失败，告诉要求数据的actor先等待");
+                System.out.println(this.getName() + "被 "+message.getSource().getName()+" 要求修改数据块的 index && 修改index 失败，告诉要求取数据的 actor 先等待");
                 DefaultMessage messages = new DefaultMessage("wait", new Object[]{index, 10});
-                manager.send(messages, this, message.getSource());  // 等 1s
+                manager.send(messages, this, message.getSource());  // 等 10ms
             }
         }
     }

@@ -25,7 +25,7 @@ public class StateT1_2 extends StateT1 {
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {// layer 表示当前标签 tag 的层数
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {// layer 表示当前标签 tag 的层数
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
@@ -35,6 +35,7 @@ public class StateT1_2 extends StateT1 {
             _q3.setLevel(layer + 1);
             curactor.pushTaskDo(new ActorTask(layer, _q3, true));
         }
+        return true;
     }
     /*
     * 在设置完返回的结果之后不满足的就可以删除了--所以在这里剩下的都是满足条件的：
@@ -50,7 +51,7 @@ public class StateT1_2 extends StateT1 {
     * */
 
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
@@ -67,6 +68,7 @@ public class StateT1_2 extends StateT1 {
                         System.out.println("T1-2谓词返回结果还未处理--等待，先处理predR");
                         dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                         actorManager.send(dmessage, curactor, curactor);
+                        return false;
                     }
                 }else{
                     System.out.println("T1-2是后续path--需检查最后一个 wt 的谓词结果是否返回");
@@ -75,6 +77,7 @@ public class StateT1_2 extends StateT1 {
                         System.out.println("T1-2谓词返回结果还未处理");
                         dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                         actorManager.send(dmessage, curactor, curactor);
+                        return false;
                     }
                 }
             }else{
@@ -91,15 +94,13 @@ public class StateT1_2 extends StateT1 {
                 WaitTask wtask = (WaitTask)list.get(0);
                 //传回整个list，pop栈顶
                 curactor.sendPathResult(new ActorTask(wtask.getId(), new Object[]{list.size(), wtask}, isInself));
-                if(ss.isEmpty()) {   // 弹完之后当前actor 所在的stack 为空了，则删除当前 actor
-                    actors.remove(curactor.getName());
-                    actorManager.detachActor(curactor);
-                }else{                      // T1-2 作为 T1-5 的后续 path
+                if(!ss.isEmpty()) {   // 弹完之后当前actor 所在的stack 为空了，则删除当前 actor
                     State state =(State)((ActorTask)(ss.peek())).getObject();
                     if(state instanceof StateT1_5){
                         //此处选择发送消息是因为返回的消息肯定还未处理--先处理返回的path结果
                         dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                         actorManager.send(dmessage, curactor, curactor);
+                        return false;
                     }
                 }
             }else{
@@ -107,6 +108,7 @@ public class StateT1_2 extends StateT1 {
                 curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
             }
         }
+        return true;
     }
     /*
     * 收到谓词的返回结果：

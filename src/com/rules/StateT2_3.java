@@ -21,7 +21,7 @@ public class StateT2_3 extends StateT2{
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {// layer 是当前 tag 的层数
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {// layer 是当前 tag 的层数
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
@@ -49,10 +49,7 @@ public class StateT2_3 extends StateT2{
                 //发送谓词结果 && pop 当前栈顶
                 curactor.popFunction();
                 curactor.sendPredsResult(new ActorTask(idd, true, isInSelf));
-                if(ss.isEmpty()){
-                    actors.remove(curactor);
-                    actorManager.detachActor(curactor);
-                }else{
+                if(!ss.isEmpty()){
                     //pop 完了之后还是T2-3 && T2-3 是要传给上级actor的
                     State state=(State)((ActorTask) ss.peek()).getObject();
                     if((state instanceof StateT2_3) && !isInSelf){// T2-3 作为 AD 轴test的谓词
@@ -61,11 +58,12 @@ public class StateT2_3 extends StateT2{
                 }
             }
         }
+        return true;
     }
 
     //谓词要是能自己遇见上层结束标签，则表明自己是检查失败的
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
         // 自己能遇到上层结束标签，谓词检查失败，弹栈 && remove 等待当前栈顶T2-3结果的 wt
         if (atask.getId() == getLevel() - 1) {
             Stack ss=curactor.getMyStack();
@@ -83,11 +81,13 @@ public class StateT2_3 extends StateT2{
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
                     state.endElementDo(index,id,atask,curactor);
                 }
-            }else {
-                actors.remove(curactor);
-                actorManager.detachActor(curactor);
             }
+//            else {
+//                actors.remove(curactor);
+//                actorManager.detachActor(curactor);
+//            }
         }
+        return true;
     }
 
     /*

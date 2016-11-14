@@ -25,15 +25,16 @@ public class StateT2_2 extends StateT2 {
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
-        if((layer==getLevel()) && (tag.equals(_test))){// T2-2 的test匹配
+        if((layer==getLevel()) && (tag.equals(_test))){     // T2-2 的test匹配
             addWTask(new WaitTask(layer, null, true));
             _q3.setLevel(layer + 1);
-            curactor.pushTaskDo(new ActorTask(layer, _q3, true));//确定是给自己的
+            curactor.pushTaskDo(new ActorTask(layer, _q3, true));   //确定是给自己的
         }
+        return true;
     }
 
     /* 到自己的结束标签的时候还是应该等一会呢--
@@ -43,7 +44,7 @@ public class StateT2_2 extends StateT2 {
     * */
 
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
        /* 遇到自己的结束标签 && 进入endElementDo操作:
           1. 该actor之前的消息肯定已经处理完毕，不存在还在等待T2-2.q3结果的情况：因为 T2-2.q3 压在 T2-2的上面-->同一个actor
           2. 自己能遇到上层结束标签，谓词检查失败，弹栈 && remove 等待当前栈顶T2-2结果的 wt  */
@@ -69,12 +70,15 @@ public class StateT2_2 extends StateT2 {
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
                     dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                     actorManager.send(dmessage, curactor, curactor);
+                    return false;
                 }
-            }else {
-                actors.remove(curactor);
-                actorManager.detachActor(curactor);
             }
+//            else {
+//                actors.remove(curactor);
+//                actorManager.detachActor(curactor);
+//            }
         }
+        return true;
     }
 
     /*

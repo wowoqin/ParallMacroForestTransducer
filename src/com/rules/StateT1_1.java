@@ -2,6 +2,7 @@ package com.rules;
 
 import com.XPath.PathParser.ASTPath;
 import com.actormodel.TaskActor;
+import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
@@ -22,7 +23,7 @@ public class StateT1_1 extends StateT1 {
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
@@ -31,6 +32,7 @@ public class StateT1_1 extends StateT1 {
             addWTask(new WaitTask(layer, true, tag));
             System.out.println("T1-1 开始标签匹配，add(wt)");
         }
+        return true;
     }
     /*
     * 在设置完返回的结果之后不满足的就可以删除了--所以在这里剩下的都是满足条件的：
@@ -41,11 +43,11 @@ public class StateT1_1 extends StateT1 {
     * */
 
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
         int layer = atask.getId();
         String tag = atask.getObject().toString();
         // T1-1 不需要等待其他信息--只有一个list
-        if(tag.equals(_test)){     //遇到自己的结束标签
+        if(getLevel() == layer && tag.equals(_test)){     //遇到自己的结束标签
             System.out.print("T1-1遇到自己结束标签，");
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
@@ -66,14 +68,16 @@ public class StateT1_1 extends StateT1 {
 
             if(!list.isEmpty()){   //上传
                 WaitTask wtask = (WaitTask)list.get(0);
-                curactor.sendPathResult(new ActorTask(idd, new Object[]{list.size(), wtask}, isInself));
-                if(ss.isEmpty()) {      // 弹完之后当前actor 所在的stack 为空了，则删除当前 actor
-                    actors.remove(curactor.getName());
-                    actorManager.detachActor(curactor);
-                }else{                      // T1-1 作为 T1-5 的后续 path
-                    State state =(State)((ActorTask)(ss.peek())).getObject();
-                    if(state instanceof StateT1_5)
-                        state.endElementDo(index,id,atask,curactor);
+                curactor.sendPathResult(new ActorTask(idd, new Object[]{list.size(), wtask.getPathR()}, isInself));
+                if(!ss.isEmpty()) {      // 弹完之后当前actor 所在的stack 为空了，则删除当前 actor
+                    State state = (State)((ActorTask)(ss.peek())).getObject();
+                    if(state instanceof StateT1_5){
+                        //此处选择发送消息是因为返回的消息肯定还未处理--先处理返回的path结果
+                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        actorManager.send(dmessage, curactor, curactor);
+                        return false;
+//                        return state.endElementDo(index,id,atask,curactor);
+                    }
                 }
             }else{
                 System.out.println("T1-1没遇到匹配的开始标签--发送 NF");
@@ -81,6 +85,7 @@ public class StateT1_1 extends StateT1 {
                 curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
             }
         }
+        return true;
     }
     //T1-1不会接收到返回的任何结果
 }

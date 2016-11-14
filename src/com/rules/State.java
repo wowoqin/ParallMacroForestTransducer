@@ -21,8 +21,8 @@ public  abstract class State  implements Cloneable {
 
     protected LinkedList list = new LinkedList();  //每一个 state 有一个 list，存放其 wt
 
-    public  abstract void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException;
-    public  abstract void endElementDo(int index,int id,ActorTask atask,TaskActor curactor);
+    public  abstract boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException;
+    public  abstract boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor);
 
     public int getLevel() { return level; }
     public void setLevel(int level) {

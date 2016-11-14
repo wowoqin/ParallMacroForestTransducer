@@ -43,10 +43,14 @@ public class StateT2 extends State implements Cloneable{
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {}
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {
+        return true;
+    }
 
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor){}
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
+        return true;
+    }
 
     @Override
     public void pathMatchFunction(ActorTask atask) {

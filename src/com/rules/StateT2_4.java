@@ -28,7 +28,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException{
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException{
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
@@ -49,10 +49,11 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 actorManager.send(dmessage,curactor,actor);
             }
         }
+        return true;
     }
 
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
         if (atask.getId() == getLevel() - 1) {
             Stack ss=curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());//(id,T2-4,isInself)
@@ -69,11 +70,13 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
                     state.endElementDo(index,id,atask,curactor);
                 }
-            }else {
-                actors.remove(curactor);
-                actorManager.detachActor(curactor);
             }
+//            else {
+//                actors.remove(curactor);
+//                actorManager.detachActor(curactor);
+//            }
         }
+        return true;
     }
 
     /*

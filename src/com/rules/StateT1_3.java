@@ -22,31 +22,33 @@ public class StateT1_3 extends StateT1 implements Cloneable {
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
         if ((layer >= getLevel()) && (tag.equals(_test))) {//当前层数大于等于应该匹配的层数 getLayer（）就可以
             addWTask(new WaitTask(layer, true, tag));
+            System.out.println("T1-3 开始标签匹配，add(wt)");
         }
+        return true;
     }
 
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
         // T1-3 不需要等待--只有一个list
         if(tag.equals(_test)){//遇到自己的结束标签
-            System.out.println("T1-3遇到自己结束标签");
+            System.out.print("T1-3遇到自己结束标签，");
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
-                    System.out.println("T1-3是整个XPath");
+                    System.out.println("&& T1-3是整个XPath--输出最后一个标签");
                     WaitTask wtask = (WaitTask)list.get(list.size()-1);  //每次输出最后一个元素
                     curactor.output(wtask);
                 }else
-                    System.out.println("T1-3是个后续path");
+                    System.out.println("&& T1-3是个后续path--等待上传");
             }else
-                System.out.println("T1-3未找到匹配的开始标记");
+                System.out.println("&& T1-3未找到匹配的开始标记");
         }else if (layer == getLevel() - 1) { // 遇到上层结束标签--遇到的是最开始T1-3的上层结束标签
             // T1-5 时，与T1-5 放在同一个栈，T1-6~T1-8 放在pathstack
             System.out.println("T1-3遇到上层结束标签-->传递结果");
@@ -66,18 +68,21 @@ public class StateT1_3 extends StateT1 implements Cloneable {
                         //此处选择发送消息是因为返回的消息肯定还未处理--先处理返回的path结果
                         dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                         actorManager.send(dmessage, curactor, curactor);
+                        return false;
                     }else if(currstate instanceof StateT1_3){
                         //T1-3作为 AD 轴test的后续path，即T1-7/T1-8
                         curactor.processSameADPath(new Object[]{num,wtask});
                     }
-                }else{
-                    actors.remove(curactor.getName());
-                    actorManager.detachActor(curactor);
                 }
+//                else{
+//                    actors.remove(curactor.getName());
+//                    actorManager.detachActor(curactor);
+//                }
             }else{
                 System.out.println("T1-3未找到匹配的开始标记--上传NF");
                 curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
             }
         }
+        return true;
     }
 }

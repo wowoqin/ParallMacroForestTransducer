@@ -22,12 +22,11 @@ public class StateT2_1 extends StateT2 {
     }
 
     @Override
-    public void startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException { // layer 是当前 tag 的层数
+    public boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException { // layer 是当前 tag 的层数
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
         if(layer == getLevel() && tag.equals(_test)){
-            System.out.println("T2-1.startElementDo--T2-1匹配开始标签");
             ActorTask task = (ActorTask)curactor.getMyStack().peek();//栈顶
             int idd = task.getId();
             boolean isInSelf = task.isInSelf();
@@ -47,17 +46,18 @@ public class StateT2_1 extends StateT2 {
                 System.out.println("T2-1 检查成功，pop && 返回 true");
                 curactor.popFunction();
                 curactor.sendPredsResult(new ActorTask(idd, true, isInSelf));
-                if(curactor.getMyStack().isEmpty()){
-                    System.out.println("T2-1所在的当前 actor 为空，detach");
-                    actors.remove(curactor.getName());
-                    actorManager.detachActor(curactor);
-                }
+//                if(curactor.getMyStack().isEmpty()){
+//                    System.out.println("T2-1所在的当前 actor 为空，detach");
+////                    actors.remove(curactor.getName());
+////                    actorManager.detachActor(curactor);
+//                }
             }
         }
+        return true;
     }
 
     @Override
-    public void endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
+    public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
         if (atask.getId() == getLevel() - 1) {  //遇到上层结束标签--检查失败
             System.out.println("T2-1遇到上层结束标签--自己检查失败--上传false");
             Stack ss = curactor.getMyStack();
@@ -78,12 +78,15 @@ public class StateT2_1 extends StateT2 {
                     System.out.println(curactor.getName()+" 的栈顶是 "+state);
                     dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                     actorManager.send(dmessage, curactor, curactor);
+                    return false;
                 }
-            }else {
-                actors.remove(curactor.getName());
-                actorManager.detachActor(curactor);
             }
+//            else {
+//                actors.remove(curactor.getName());
+//                actorManager.detachActor(curactor);
+//            }
         }
+        return true;
     }
 
     /*

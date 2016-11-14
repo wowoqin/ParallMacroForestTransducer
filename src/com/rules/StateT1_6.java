@@ -53,7 +53,7 @@ public class StateT1_6 extends StateT1{
             _q3.setLevel(layer + 1);
 
             curactor.pushTaskDo(new ActorTask(layer, _q3, true));
-            String name=((Integer)this._pathstack.hashCode()).toString().concat("T1-6.paActor");
+            String name=((Integer)this.hashCode()).toString().concat("T1-6.paActor");
             Actor actor;
 
             if(!actors.containsKey(name)){

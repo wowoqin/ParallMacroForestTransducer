@@ -78,6 +78,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 dmessage = new DefaultMessage("nodeID", new Object[]{index, ++id});
                 actorManager.send(dmessage, curactor, actor);
             }
+
         }
         return true;
     }

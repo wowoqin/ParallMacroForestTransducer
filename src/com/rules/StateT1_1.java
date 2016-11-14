@@ -48,7 +48,7 @@ public class StateT1_1 extends StateT1 {
         String tag = atask.getObject().toString();
         // T1-1 不需要等待其他信息--只有一个list
         if(getLevel() == layer && tag.equals(_test)){     //遇到自己的结束标签
-            System.out.print("T1-1遇到自己结束标签，");
+            System.out.print("T1-1遇到自己的结束标签，");
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     System.out.println("T1-1是整个XPath--输出");

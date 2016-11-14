@@ -48,7 +48,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
             System.out.print("T1-7.test匹配，add(wt)，");
             list.add(new LinkedList<WaitTask>());
             addWTask(new WaitTask(layer,true,null));
-            String name = ((Integer)this._pathstack.hashCode()).toString().concat("T1-7.paActor");
+            String name = ((Integer)this.hashCode()).toString().concat("T1-7.paActor");
             Actor actor;
 
             if(!actors.containsKey(name)){
@@ -66,10 +66,14 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 actorManager.send(dmessage, curactor, actor);
             }
 
+            if(((TaskActor)actor).getMyIndex() == index){
+
+            }
+
             if(id == 1){
-                System.out.println(name + " 对当前数据块for循环处理结束--要去 cacheActor 那里先 modifyIndex");
-                DefaultMessage message1 = new DefaultMessage("modifyIndex", ++index);
-                actorManager.send(message1, actor, actors.get("cacheActor"));
+                System.out.println(name + " 在 currActor 中对当前数据块for循环处理结束--要让actor去 cacheActor 那里先 modifyIndex");
+                DefaultMessage message1 = new DefaultMessage("needModifyIndex", ++index);
+                actorManager.send(message1, curactor, actor);
             }else {
                 dmessage = new DefaultMessage("nodeID", new Object[]{index, ++id});
                 actorManager.send(dmessage, curactor, actor);

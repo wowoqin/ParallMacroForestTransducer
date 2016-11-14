@@ -19,6 +19,15 @@ public class TaskActor extends AbstractActor {
     protected Stack myStack;    //每个actor 中应该有一个 stack ，也就是一个 stack 对应于一个 actor
     protected Actor resActor;   //上级 Actor
     protected LinkList linkList = CacheActor.linkList;
+    protected int myIndex = 0;
+
+    public void setMyIndex(int myIndex) {
+        this.myIndex = myIndex;
+    }
+
+    public int getMyIndex() {
+        return myIndex;
+    }
 
     public Stack getMyStack() {
         return myStack;
@@ -77,13 +86,18 @@ public class TaskActor extends AbstractActor {
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }
+            if(datas.length == 3)
+                Thread.currentThread().setPriority((int)datas[2]+1);
         }else if("push".equals(subject)){
             try {
                 this.pushTaskDo((ActorTask)message.getData());
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }
-        }else if("wait".equals(subject)){
+        }else if("needModifyIndex".equals(subject)){
+            getManager().send(message,this,State.actors.get("cacheActor"));
+        }
+        else if("wait".equals(subject)){
             //输入用完--数据块没了，等 10ms，然后继续发送修改index 的请求，看是否能成功吧
             System.out.print(this.getName() + " 接到消息：cacheactor 中输入用完--需要等待，");
             Object[] data = (Object[])message.getData();
@@ -120,6 +134,8 @@ public class TaskActor extends AbstractActor {
 
                 int index = (Integer)data[0];    //根据index找到链表中的数据块
                 int arrid = (Integer)data[1];
+                setMyIndex(index);//设置当前actor所处理的数据块的index
+
                 Node node = linkList.getNode(index);   //一块只取一次--for循环之前得到
                 System.out.println(this.getName() + " 收到数据块的 nodeID = " + index +"--for循环处理标签");
 

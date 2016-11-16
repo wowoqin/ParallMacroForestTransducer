@@ -35,7 +35,9 @@ public class StateT1_7 extends StateT1 implements Cloneable{
 //
 //    @Override
 //    public void addWTask(WaitTask wtask){
-//        this.list.add(new LinkedList<WaitTask>().add(wtask));
+//        list.add(new LinkedList<WaitTask>());
+//        addWTask(wtask);
+////        this.list.add(new LinkedList<WaitTask>().add(wtask));
 //    }
 
     @Override
@@ -47,9 +49,10 @@ public class StateT1_7 extends StateT1 implements Cloneable{
             // 在 list 中添加需要等待匹配的任务模型
             System.out.print("T1-7.test匹配，add(wt)，");
             list.add(new LinkedList<WaitTask>());
-            addWTask(new WaitTask(layer,true,null));
+            addWTask(new WaitTask(layer, true, null));
             String name = ((Integer)this.hashCode()).toString().concat("T1-7.paActor");
             Actor actor;
+            ActorTask aatask = null;
 
             if(!actors.containsKey(name)){
                 System.out.println("pathactor == null,创建后q1再压栈");
@@ -61,21 +64,18 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 System.out.println(" pathactor != null，q1直接压栈");
                 actor = actors.get(name);
                 State currQ = (State)_q1.copy();
+                currQ.list.clear();
                 currQ.setLevel(layer + 1);
-                dmessage = new DefaultMessage("push",new ActorTask(layer,currQ,false));
-                actorManager.send(dmessage, curactor, actor);
-            }
-
-            if(((TaskActor)actor).getMyIndex() == index){
-
+                aatask = new ActorTask(layer,currQ,false);
             }
 
             if(id == 1){
-                System.out.println(name + " 在 currActor 中对当前数据块for循环处理结束--要让actor去 cacheActor 那里先 modifyIndex");
-                DefaultMessage message1 = new DefaultMessage("needModifyIndex", ++index);
+                System.out.println(" 当前数据块处理结束--要让 "+name+" 先去cacheActor那里modifyIndex：++index");
+                DefaultMessage message1 = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask,new WaitTask(layer,true,null)});
                 actorManager.send(message1, curactor, actor);
             }else {
-                dmessage = new DefaultMessage("nodeID", new Object[]{index, ++id});
+                System.out.println("当前数据块还没结束，currActor告诉 "+name+" 先去cacheActor那里modifyIndex：index");
+                dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask,new WaitTask(layer,true,null)});
                 actorManager.send(dmessage, curactor, actor);
             }
 
@@ -93,17 +93,17 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size()-1);
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     //若是要输出，则输出list中最后一个list
-                    System.out.print("T1-7是个XPath，");
+                    System.out.print("T1-7是个XPath，list.size()= "+list.size());
                     if(!llist.isEmpty()){
                         WaitTask wtask = llist.get(0);
                         if(wtask.hasReturned()){
-                            System.out.println("T1-7的path结果已处理完毕--输出");
+                            System.out.println(",T1-7的path结果已处理完毕--输出");
                             for(WaitTask wwtask:llist){
                                 curactor.output(wwtask);
                             }
                             list.remove(llist);   //删除这个llist
                         }else{   //还未处理返回结果
-                            System.out.println("T1-7 path还没返回结果||返回结果还未处理,等啊等。。。");
+                            System.out.println(",T1-7 path还没返回结果||返回结果还未处理,等啊等。。。");
                             do{
                                 try {
                                     Thread.sleep(1);
@@ -209,25 +209,31 @@ public class StateT1_7 extends StateT1 implements Cloneable{
   * */
     @Override
     public void pathMatchFunction(ActorTask atask) {
-        LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size() - 1);//最后一个list
         System.out.print("T1-7 处理pathR，");
 
-        if(!llist.isEmpty()){
-            Object[] obj = (Object[])atask.getObject();
-            int num = (Integer)obj[0];
-
-            if(num==0){
-                System.out.println("pathR == notFound，清空llist");
-                llist.clear();   //清空llist
-            } else {
-                System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
+        for(int i = list.size()-1;i >= 0;i--){
+            LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(i);
+            if(!llist.isEmpty()){
                 WaitTask wt = llist.get(0);
-                String tag = (String) obj[1];
-                wt.setPathR(tag);
-                for(int i = 0;i<num - 1;i++)
-                    llist.add(wt);
+                if(wt.getId() == atask.getId()){
+                    Object[] obj = (Object[])atask.getObject();
+                    int num = (Integer)obj[0];
+
+                    if(num == 0){
+                        System.out.println("pathR == notFound，清空llist");
+                        llist.clear();   //清空llist
+                    } else {
+                        System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
+
+                        String tag = (String) obj[1];
+                        wt.setPathR(tag);
+                        for(int j = 0;j<num - 1;j++)
+                            llist.add(wt);
+                    }
+                    return;
+                }
             }
+            //else--已经是空的（即pred返回false），若输出--删除空的llist、、若上传，计算的时候size==0
         }
-        //else--已经是空的（即pred返回false），若输出--删除空的llist、、若上传，计算的时候size==0
     }
 }

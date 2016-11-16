@@ -65,8 +65,8 @@ public class StateT1_1 extends StateT1 {
             ActorTask task = (ActorTask)ss.peek();
             int idd = task.getId();
             boolean isInself = task.isInSelf();
-
             if(!list.isEmpty()){   //上传
+                System.out.println(this+" 的list中元素的个数："+list.size()+",list中的第一个元素："+list.get(0));
                 WaitTask wtask = (WaitTask)list.get(0);
                 curactor.sendPathResult(new ActorTask(idd, new Object[]{list.size(), wtask.getPathR()}, isInself));
                 if(!ss.isEmpty()) {      // 弹完之后当前actor 所在的stack 为空了，则删除当前 actor
@@ -82,7 +82,7 @@ public class StateT1_1 extends StateT1 {
             }else{
                 System.out.println("T1-1没遇到匹配的开始标签--发送 NF");
                 //上传一个 NF--得告诉上级我没找见
-                curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
             }
         }
         return true;

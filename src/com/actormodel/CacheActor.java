@@ -30,12 +30,14 @@ public class CacheActor extends AbstractActor {
                 this.getManager().send(messages,this,manager.getActors()[0]);  //mainActor
             }
         }else if(subject.equals("modifyIndex")) {     //要求修改next的时候
-            int index = (Integer) message.getData();  //当前的处理完的数据块的index
+            Object[] data = (Object[]) message.getData();
+            int index = (Integer) data[0];  //当前的处理完的数据块的index
+
             if (index <= linkList.getSize()) {
                 System.out.println(this.getName() + "被 "+message.getSource().getName()+" 要求修改数据块的 index && 能够修改index");
-                DefaultMessage messages = new DefaultMessage("nodeID", new Object[]{index, 0});
+                DefaultMessage messages = new DefaultMessage("nodeID", new Object[]{index, data[1]});
                 manager.send(messages, this, message.getSource());
-            } else {  //输入没了
+            } else {  //输入没了--id==0
                 System.out.println(this.getName() + "被 "+message.getSource().getName()+" 要求修改数据块的 index && 修改index 失败，告诉要求取数据的 actor 先等待");
                 DefaultMessage messages = new DefaultMessage("wait", new Object[]{index, 10});
                 manager.send(messages, this, message.getSource());  // 等 10ms

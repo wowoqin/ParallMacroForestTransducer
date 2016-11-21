@@ -69,7 +69,7 @@ public class StateT1_5 extends StateT1{
                         if(wtask.hasReturned()){
                             System.out.println("T1-5的 path 结果已处理完毕--输出&删除llist");
                             for(WaitTask wwtask:llist)
-                                curactor.output(wwtask);
+                                wwtask.output();
                             list.remove(llist);   //删除llist
                         } else{  //还未处理返回结果
                             System.out.println("T1-5的path结果还未处理--先处理pathR，重新将结束标签发送给自己");
@@ -121,20 +121,19 @@ public class StateT1_5 extends StateT1{
                 }
 
                 if(num > 0){
-                    curactor.sendPathResult(new ActorTask(0, new Object[]{num, wtask}, isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{num, wtask}, isInself));
                 } else{
-                    curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
                 }
 
             }else{
                 System.out.println("T1-5无上传结果--传递NF");
-                curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
             }
 
             //返回结果之后pop（T1-5），看当前栈顶
             if(!ss.isEmpty()){
-                task = (ActorTask)(ss.peek());
-                State currstate = (State)task.getObject();
+                State currstate = (State)((ActorTask)ss.peek()).getObject();
                 if(currstate instanceof StateT1_5){
                     dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                     actorManager.send(dmessage, curactor, curactor);

@@ -90,12 +90,11 @@ public class StateT1_2 extends StateT1 {
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
-            int idd = task.getId();
 
             if(!list.isEmpty()){
                 WaitTask wtask = (WaitTask)list.get(0);
                 //传回整个list，pop栈顶
-                curactor.sendPathResult(new ActorTask(wtask.getId(), new Object[]{list.size(), wtask}, isInself));
+                curactor.sendPathResult(new ActorTask(wtask.getId(), new Object[]{list.size(), wtask.getPathR()}, isInself));
                 if(!ss.isEmpty()) {   // 弹完之后当前actor 所在的stack 为空了，则删除当前 actor
                     State state =(State)((ActorTask)(ss.peek())).getObject();
                     if(state instanceof StateT1_5){
@@ -107,7 +106,7 @@ public class StateT1_2 extends StateT1 {
                 }
             }else{
                 System.out.println("T1-2未找到匹配标记 || T1-2谓词返回false--发送 NF");
-                curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
             }
         }
         return true;

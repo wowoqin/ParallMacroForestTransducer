@@ -146,14 +146,13 @@ public class StateT1_4 extends StateT1 implements Cloneable {
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
-            int idd = task.getId();
 
             if(!list.isEmpty()){
                 int num = getList().size();
                 WaitTask wtask = (WaitTask)list.get(0);
-                curactor.sendPathResult(new ActorTask(wtask.getId(), new Object[]{num, wtask}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{num, wtask}, isInself));
                 if(!ss.isEmpty()){
-                    task=(ActorTask)(ss.peek());
+                    task = (ActorTask)(ss.peek());
                     State currstate =(State)task.getObject();
                     if(currstate instanceof StateT1_5){
                         //此处选择发送消息是因为返回的消息肯定还未处理--先处理返回的path结果
@@ -162,12 +161,12 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                         return false;
                     }else if(currstate instanceof StateT1_4){
                         //T1-4作为AD轴test的后续path，即T1-7/T1-8
-                        curactor.processSameADPath(new Object[]{idd,num,wtask});
+                        curactor.processSameADPath(new Object[]{task.getId(),num,wtask});
                     }
                 }
             }else{
                 System.out.println("T1-4未找到匹配标记--上传NF");
-                curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
             }
         }
         return true;

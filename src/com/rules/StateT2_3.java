@@ -26,13 +26,13 @@ public class StateT2_3 extends StateT2{
         String tag = atask.getObject().toString();
 
         if((layer >= getLevel()) && (tag.equals(_test))){
-            Stack ss=curactor.getMyStack();
+            Stack ss = curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());
             int idd = task.getId();
             boolean isInSelf = task.isInSelf();
 
-            if(!list.isEmpty()){  //T3-3 && T3-3.q'''检查成功
-                WaitState waitState=new WaitState();
+            if(!list.isEmpty()){    //T3-3 && T3-3.q'''检查成功
+                WaitState waitState = new WaitState();
                 waitState.setLevel(((State) atask.getObject()).getLevel());
                 waitState.getList().add(list.get(0));
                 curactor.popFunction();
@@ -51,8 +51,8 @@ public class StateT2_3 extends StateT2{
                 curactor.sendPredsResult(new ActorTask(idd, true, isInSelf));
                 if(!ss.isEmpty()){
                     //pop 完了之后还是T2-3 && T2-3 是要传给上级actor的
-                    State state=(State)((ActorTask) ss.peek()).getObject();
-                    if((state instanceof StateT2_3) && !isInSelf){// T2-3 作为 AD 轴test的谓词
+                    State state = (State)((ActorTask) ss.peek()).getObject();
+                    if((state instanceof StateT2_3) && !isInSelf){   // T2-3 作为 AD 轴test的谓词
                         curactor.processSameADPred();
                     }
                 }
@@ -82,10 +82,6 @@ public class StateT2_3 extends StateT2{
                     state.endElementDo(index,id,atask,curactor);
                 }
             }
-//            else {
-//                actors.remove(curactor);
-//                actorManager.detachActor(curactor);
-//            }
         }
         return true;
     }

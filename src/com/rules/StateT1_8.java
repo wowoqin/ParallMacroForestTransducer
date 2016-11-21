@@ -250,7 +250,7 @@ public class StateT1_8 extends StateT1 {
                             return false;
                         }else if(currstate instanceof StateT1_8){
                             //T1-7作为AD轴test的后续path，即T1-7/T1-8
-                            curactor.processSameADPath(new Object[]{idd,num,wtask});
+                            curactor.processSameADPath(new Object[]{task.getId(),num,wtask});
                         }
                     }
                 }else {
@@ -301,24 +301,30 @@ public class StateT1_8 extends StateT1 {
    * */
     @Override
     public void pathMatchFunction(ActorTask atask) {
-        LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size() - 1);//最后一个list
-        System.out.print("T1-8 处理pathR，");
-        if(!llist.isEmpty()){
-            Object[] obj = (Object[])atask.getObject();
-            int num = (Integer)obj[0];
-
-            if(num==0){
-                System.out.println("pathR==notFound，清空llist");
-                llist.clear();   //清空llist
-            } else {
-                System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
+        System.out.print("T1-7 处理pathR，");
+        for(int i = list.size()-1;i >= 0;i--){
+            ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
+            if(!llist.isEmpty()){
                 WaitTask wt = llist.get(0);
-                String tag = (String) obj[1];
-                wt.setPathR(tag);
-                for(int i = 1;i<num;i++)
-                    llist.add(wt);
+                if(wt.getId() == atask.getId()){
+                    Object[] obj = (Object[])atask.getObject();
+                    int num = (Integer)obj[0];
+
+                    if(num == 0){
+                        System.out.println("pathR == notFound，清空llist");
+                        llist.clear();   //清空llist
+                    } else {
+                        System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
+
+                        String tag = (String) obj[1];
+                        wt.setPathR(tag);
+                        for(int j = 0;j<num - 1;j++)
+                            llist.add(wt);
+                    }
+                    return;
+                }
             }
+            //else--已经是空的（即pred返回false），若输出--删除空的llist、、若上传，计算的时候size == 0
         }
-        //else--已经是空的（即pred返回false），若输出--删除空的llist、、若上传，计算的时候size==0
     }
 }

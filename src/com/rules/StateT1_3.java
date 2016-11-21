@@ -56,13 +56,12 @@ public class StateT1_3 extends StateT1 implements Cloneable {
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
-            int idd = task.getId();
 
             if(!list.isEmpty()){
                 int num = list.size();
                 WaitTask wtask = (WaitTask)list.get(0);
                 //传递整个list，pop（T1-3）
-                curactor.sendPathResult(new ActorTask(idd, new Object[]{num, wtask.getPathR()}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{num, wtask.getPathR()}, isInself));
                 if(!ss.isEmpty()){
                     task = (ActorTask)(ss.peek());
                     State currstate = (State)task.getObject();
@@ -73,12 +72,12 @@ public class StateT1_3 extends StateT1 implements Cloneable {
                         return false;
                     }else if(currstate instanceof StateT1_3){
                         //T1-3作为 AD 轴test的后续path，即T1-7/T1-8
-                        curactor.processSameADPath(new Object[]{idd,num,wtask});
+                        curactor.processSameADPath(new Object[]{task.getId(),num,wtask});
                     }
                 }
             }else{
                 System.out.println("T1-3未找到匹配的开始标记--上传NF");
-                curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
             }
         }
         return true;

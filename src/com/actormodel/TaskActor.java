@@ -295,21 +295,22 @@ public class TaskActor extends AbstractActor {
 
     //压栈操作
     public void pushTaskDo(ActorTask actorTask) throws CloneNotSupportedException {
-        Stack curstack=this.getMyStack();
-        State state = (State)(actorTask.getObject());     // 要压栈的 state
+        Object[] obj = ((Object[]) actorTask.getObject());
+        State state = (State)obj[0];
         System.out.println(this.getName() + " 进行压栈操作," + state +" 入栈");
 
         if(state instanceof StateT3) {  //T3
+            //(id,[q3,index,arrid],isInself)
             int id = actorTask.getId();
             boolean isInSelf = actorTask.isInSelf();
-            int level = ((State) (actorTask.getObject())).getLevel();// T3 要匹配的层数
+            int level = state.getLevel();// T3 要匹配的层数
 
             State firstPred = ((StateT3) state).get_q2(); // q'''
             State remainPred = ((StateT3) state).get_q3();// q''
             firstPred.setLevel(level);
             remainPred.setLevel(level);
             //push(q''')
-            curstack.push(new ActorTask(id, firstPred, isInSelf));
+            this.getMyStack().push(new ActorTask(id, firstPred, isInSelf));
             //在 T3-1.q'''.list 中添加要等待的 wt
             firstPred.getList().add(new WaitTask(id, null, null));
             Stack stack = ((StateT3) state).get_predstack();
@@ -326,19 +327,38 @@ public class TaskActor extends AbstractActor {
             //push(q'')-->继续调用此函数判断压栈
             if (!State.actors.containsKey(name)) {
                 Actor actor = getManager().createAndStartActor(this.getClass(), name);
-                DefaultMessage message = new DefaultMessage("res&&push", new Object[]{stack, new ActorTask(id, remainPred, false)});
+                DefaultMessage message = new DefaultMessage("res&&push", new Object[]{stack, new ActorTask(id, new Object[]{remainPred,obj[1],obj[2]}, false)});
                 getManager().send(message, this, actor);
             } else {
+                Actor actor = State.actors.get(name);
                 State currQ = (State) remainPred.copy();
                 currQ.setLevel(level);
                 currQ.setList(new ArrayList());
-                DefaultMessage message = new DefaultMessage("push", new ActorTask(id, currQ, false));
-                Actor actor = State.actors.get(name);
-                getManager().send(message, this, actor);
+                if(!stack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
+                    System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
+                    aatask = new ActorTask(layer,currQ,false);
+                    //向 actor 发送数据块的 index + id
+                    if(id == 1){
+                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
+                        DefaultMessage message = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
+                        getManager().send(message, this, actor);
+                    }else {
+                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+                        DefaultMessage message = new DefaultMessage("needModifyIndex", new Object[]{obj[1],obj[2],aatask});
+                        getManager().send(message, this, actor);
+                    }
+                    return;
+                }else{
+                    System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
+                    DefaultMessage message = new DefaultMessage("push", new ActorTask(id, new Object[]{currQ,obj[1],obj[2]}, false));
+                    getManager().send(message, this, actor);
+                }
             }
             //给数据源
+
         }else{
-            curstack.push(actorTask);
+            //(id,q,isInself)
+            this.getMyStack().push(actorTask);
         }
     }
 
@@ -385,14 +405,12 @@ public class TaskActor extends AbstractActor {
     public void processSameADPred(){
         System.out.println(this.getName() +" processSameADPred 操作");
         Stack currstack = this.getMyStack();
-        if(!currstack.isEmpty()){  //传过去的结果只会对list的最后一个元素做检查--所以id就起到关键性的作用
+        if(!currstack.isEmpty()){    //传过去的结果只会对list的最后一个元素做检查--所以id就起到关键性的作用
             ActorTask task = (ActorTask)currstack.peek();
-            int id = task.getId(); // 当前栈顶 taskmodel 的 id
+            int id = task.getId();   // 当前栈顶 taskmodel 的 id
             boolean isInSelf = task.isInSelf();
             this.sendPredsResult(new ActorTask(id, true, isInSelf));
         }
-        //栈为空
-        this.getManager().detachActor(this);
     }
 
     public void processSameADPath(Object[] wt) {
@@ -401,21 +419,6 @@ public class TaskActor extends AbstractActor {
         DefaultMessage message = new DefaultMessage("append",wt);
         getManager().send(message,this,this.getResActor());
     }
-
-//    public void appendPathR(Object[] wt){  //追加AD轴path的检查结果--
-//        int num = (Integer)wt[1];
-//        System.out.println(this.getName() +" 追加 " + num + " 个AD轴path的检查结果");
-//        WaitTask waitTask = (WaitTask)wt[2];
-//        if(!myStack.isEmpty()){
-//            State state = (State)((ActorTask)getMyStack().peek()).getObject();
-//            for(int j = state.getList().size()-1;j >= 0;j--){
-//                ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
-//            }
-//            for(int i=0;i<num;i++){
-//                state.addWTask(waitTask);
-//            }
-//        }
-//    }
 
     public void output(WaitTask wt){
         wt.output();

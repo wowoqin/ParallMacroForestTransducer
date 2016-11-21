@@ -48,13 +48,7 @@ public class StateT2_2 extends StateT2 {
        /* 遇到自己的结束标签 && 进入endElementDo操作:
           1. 该actor之前的消息肯定已经处理完毕，不存在还在等待T2-2.q3结果的情况：因为 T2-2.q3 压在 T2-2的上面-->同一个actor
           2. 自己能遇到上层结束标签，谓词检查失败，弹栈 && remove 等待当前栈顶T2-2结果的 wt  */
-        int layer = atask.getId();
-        String tag = atask.getObject().toString();
-
-        if(tag .equals(_test)){  //遇到自己的结束标签
-
-
-        } else if (atask.getId() == getLevel() - 1) {   //上层结束标签--检查失败
+        if (atask.getId() == getLevel() - 1) {   //上层结束标签--检查失败
             Stack ss = curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());   //(id,T2-2,isInself)
             int idd = task.getId();
@@ -73,10 +67,6 @@ public class StateT2_2 extends StateT2 {
                     return false;
                 }
             }
-//            else {
-//                actors.remove(curactor);
-//                actorManager.detachActor(curactor);
-//            }
         }
         return true;
     }

@@ -110,9 +110,9 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                         if(wtask.hasReturned()){
                             System.out.println(",T1-7的path结果已处理完毕--输出llist.size= "+llist.size());
                             for(WaitTask wwtask:llist){
-                                curactor.output(wwtask);
+                                wwtask.output();
                             }
-                            list.remove(list.size()-1);   //删除这个llist
+                            list.remove(llist);   //删除这个llist
                         }else{   //还未处理返回结果
                             System.out.println(",T1-7 path还没返回结果||返回结果还未处理,等啊等。。。");
                             do{
@@ -164,7 +164,6 @@ public class StateT1_7 extends StateT1 implements Cloneable{
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
-            int idd = task.getId();
 
             if(!list.isEmpty()){
                 int num = 0;
@@ -179,7 +178,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 }
 
                 if(num > 0){
-                    curactor.sendPathResult(new ActorTask(0,new Object[]{num,wtask},isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(),new Object[]{num,wtask},isInself));
                     if(!ss.isEmpty()){
                         task = (ActorTask)(ss.peek());
                         State currstate = (State)task.getObject();
@@ -189,21 +188,20 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                             return false;
                         }else if(currstate instanceof StateT1_7){
                             //T1-7作为AD轴test的后续path，即T1-7/T1-8
-                            curactor.processSameADPath(new Object[]{idd,num,wtask});
+                            curactor.processSameADPath(new Object[]{task.getId(),num,wtask});
                         }
                     }
                 }else {
                     System.out.println("T1-7 path检查失败，无上传结果");
-                    curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
                 }
             }else{
                 System.out.println("T1-7没遇到其开始标记&&遇到了上层结束标记，上传结果 NF");
-                curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
             }
 
             if(!ss.isEmpty()){
-                task = (ActorTask)(ss.peek());
-                State currstate = (State)task.getObject();
+                State currstate = (State)((ActorTask)ss.peek()).getObject();
                 if(currstate instanceof StateT1_5){
                     dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                     actorManager.send(dmessage, curactor, curactor);

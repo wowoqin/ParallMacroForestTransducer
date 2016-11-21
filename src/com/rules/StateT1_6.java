@@ -187,19 +187,18 @@ public class StateT1_6 extends StateT1{
                 }
 
                 if(num > 0){
-                    curactor.sendPathResult(new ActorTask(0,new Object[]{num,wtask},isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(),new Object[]{num,wtask},isInself));
                 }else {
                     System.out.println("T1-6 path/pred检查失败，上传NF");
-                    curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
                 }
             }else{
                 System.out.println("T1-6 没遇到其开始标签，上传NF");
-                curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
             }
             //返回结果之后pop（T1-6），看当前栈顶
             if(!ss.isEmpty()){
-                task = (ActorTask)(ss.peek());
-                State currstate = (State)task.getObject();
+                State currstate = (State)((ActorTask)ss.peek()).getObject();
                 if(currstate instanceof StateT1_5){
                     dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                     actorManager.send(dmessage, curactor, curactor);

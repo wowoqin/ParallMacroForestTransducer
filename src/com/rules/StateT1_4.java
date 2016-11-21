@@ -100,7 +100,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                     if(wtask.hasReturned()){
                         System.out.print("T1-4谓词结果已处理完毕,");
                         if(wtask.getPredR()){
-                            System.out.println("满足--输出&删除list.size()-1");
+                            System.out.println("满足--输出&删除最后一个wt");
                             wtask.output();
                         }else{
                             System.out.println("不满足--删除");
@@ -146,6 +146,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
+            int idd = task.getId();
 
             if(!list.isEmpty()){
                 int num = getList().size();
@@ -161,12 +162,12 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                         return false;
                     }else if(currstate instanceof StateT1_4){
                         //T1-4作为AD轴test的后续path，即T1-7/T1-8
-                        curactor.processSameADPath(new Object[]{num,wtask});
+                        curactor.processSameADPath(new Object[]{idd,num,wtask});
                     }
                 }
             }else{
                 System.out.println("T1-4未找到匹配标记--上传NF");
-                curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
             }
         }
         return true;
@@ -181,7 +182,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
         System.out.println("T1-4 对返回的predR进行处理，到结束标记的时候，true-输出/false-删除,predR == " + pred);
 
         for(int i=list.size()-1;i>=0;i--){
-            WaitTask wt = (WaitTask)list.get(i);  //最后一个元素
+            WaitTask wt = (WaitTask)list.get(i);  //id相同的元素
             if(wt.getId() == atask.getId()){
                 wt.setPredR(pred);   //true/false先设置--到结束标记的时候，false的删除
                 return;

@@ -51,7 +51,7 @@ public class StateT1_6 extends StateT1{
             curactor.pushTaskDo(new ActorTask(layer, _q3, true));
             String name=((Integer)this.hashCode()).toString().concat("T1-6.paActor");
             Actor actor;
-            ActorTask aatask = null;
+            ActorTask aatask;
 
             if(!actors.containsKey(name)){
                 System.out.println("pathactor == null，创建了 q1 再压栈");
@@ -65,24 +65,34 @@ public class StateT1_6 extends StateT1{
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
-                if(_pathstack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
-                    System.out.println("，pathstack为空，q1直接压栈");
+                if(!_pathstack.isEmpty()){      //上一个的path已经检查成功弹栈了
+                    System.out.println("，pathstack 不为空，当前q1会add到curractor的缓存list中去");
+                    aatask = new ActorTask(layer,currQ,false);
+                    //向 actor 发送数据块的 index + id
+                    if(id == 1){
+                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
+                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
+                        actorManager.send(dmessage, curactor, actor);
+                    }else {
+                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask});
+                        actorManager.send(dmessage, curactor, actor);
+                    }
+                    return true;
+                }else{
+                    System.out.println("，pathstack为空-即上一个q1已经检查成功弹栈了，当前q1直接压栈");
                     dmessage = new DefaultMessage("push",new ActorTask(layer, currQ, false));
                     actorManager.send(dmessage, curactor, actor);
-                }else{
-                    System.out.println("，pathstack 不为空，q1会add到curractor的缓存list中去");
-                    aatask = new ActorTask(layer,currQ,false);
                 }
             }
 
             //向 actor 发送数据块的 index + id
+            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
             if(id == 1){
-                System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
-                dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
+                dmessage = new DefaultMessage("modifyIndex", new Object[]{++index,0});
                 actorManager.send(dmessage, curactor, actor);
             }else {
-                System.out.println("当前数据块还没结束，" + name + " 的Index：index");
-                dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask});
+                dmessage = new DefaultMessage("modifyIndex", new Object[]{index, ++id});
                 actorManager.send(dmessage, curactor, actor);
             }
         }

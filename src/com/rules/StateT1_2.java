@@ -90,6 +90,7 @@ public class StateT1_2 extends StateT1 {
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
+            int idd = task.getId();
 
             if(!list.isEmpty()){
                 WaitTask wtask = (WaitTask)list.get(0);
@@ -106,7 +107,7 @@ public class StateT1_2 extends StateT1 {
                 }
             }else{
                 System.out.println("T1-2未找到匹配标记 || T1-2谓词返回false--发送 NF");
-                curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
+                curactor.sendPathResult(new ActorTask(idd, new Object[]{0, "NF"}, isInself));
             }
         }
         return true;

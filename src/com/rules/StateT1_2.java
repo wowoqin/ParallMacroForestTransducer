@@ -55,15 +55,16 @@ public class StateT1_2 extends StateT1 {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
-        if(tag.equals(_test)){//遇到自己的结束标签--说明谓词已经弹栈
+        if(layer == getLevel() && tag.equals(_test)){//遇到自己的结束标签--说明谓词已经弹栈
             System.out.println("T1-2遇到自己结束标签--谓词已弹栈-->已发回结果");
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     System.out.print("T1-2是整个XPath，");
                     WaitTask wtask = (WaitTask)list.get(0);
                     if(wtask.hasReturned()){
-                        System.out.println("T1-2谓词结果已处理完毕--输出");
+                        System.out.println("T1-2谓词结果已处理完毕--输出&删除");
                         curactor.output(wtask);
+                        list.remove(0);
                     }else {// 谓词已经弹栈并返回了消息，在处理下一个标签之前会检查actor的消息队列的消息数，先处理返回结果
                         System.out.println("T1-2谓词返回结果还未处理--等待，先处理predR");
                         dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
@@ -123,7 +124,7 @@ public class StateT1_2 extends StateT1 {
             wt.setPredR(pred);
         }else{     //false
             System.out.println("T2-1对谓词返回结果 false 进行处理--remove(wt)");
-            list.remove();     //若是要输出--list不为空||若是要上传，留下的只是满足条件的
+            list.remove(list.size()-1);     //若是要输出--list不为空||若是要上传，留下的只是满足条件的
         }
     }
 }

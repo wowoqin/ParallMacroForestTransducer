@@ -7,6 +7,7 @@ import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 /**
@@ -37,6 +38,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
             System.out.print("T1-4 开始标签匹配，add(wt),wt.id= "+layer);
             String name = ((Integer) this.hashCode()).toString().concat("T1-4.prActor");
             Actor actor;
+            ActorTask aatask;
 
             if(!actors.containsKey(name)) {   // 若predstack 为空
                 System.out.println("，T1-4.prActor == null，创建");
@@ -45,21 +47,39 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                 dmessage = new DefaultMessage("res&&push",new Object[]{this._predstack,new ActorTask(layer, _q3, false)});
                 actorManager.send(dmessage, curactor, actor);
             }else{  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
-                System.out.println("，T1-4.prActor 已经存在，将会直接压栈 q3");
+                System.out.print("，T1-4.prActor 已经存在");
                 actor = actors.get(name);
                 State currQ = (State) _q3.copy();
                 currQ.setLevel(layer + 1);
-                dmessage = new DefaultMessage("push",new ActorTask(layer,currQ,false));
-                actorManager.send(dmessage,curactor,actor);
+                currQ.list = new ArrayList();
+                if(!_predstack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
+                    System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
+                    aatask = new ActorTask(layer,currQ,false);
+                    //向 actor 发送数据块的 index + id
+                    if(id == 1){
+                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
+                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
+                        actorManager.send(dmessage, curactor, actor);
+                    }else {
+                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask});
+                        actorManager.send(dmessage, curactor, actor);
+                    }
+                    return true;
+                }else{
+                    System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
+                    dmessage = new DefaultMessage("push",new ActorTask(layer, currQ, false));
+                    actorManager.send(dmessage, curactor, actor);
+                }
             }
 
             //向 actor 发送数据块的 index + id
+            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
             if(id == 1){
-                System.out.println(name + " 对当前数据块for循环处理结束--要求去modifyIndex");
-                DefaultMessage message1 = new DefaultMessage("modifyIndex", ++index);
-                actorManager.send(message1, actor, actors.get("cacheActor"));
+                dmessage = new DefaultMessage("modifyIndex", new Object[]{++index,0});
+                actorManager.send(dmessage, curactor, actor);
             }else {
-                dmessage = new DefaultMessage("nodeID", new Object[]{index, ++id});
+                dmessage = new DefaultMessage("modifyIndex", new Object[]{index, ++id});
                 actorManager.send(dmessage, curactor, actor);
             }
         }
@@ -71,49 +91,55 @@ public class StateT1_4 extends StateT1 implements Cloneable {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
-        if (tag.equals(_test)) {   //遇到自己的结束标签，检查自己的list中的最后一个 wt -->输出/remove
+        if (tag.equals(_test)) {     //遇到自己的结束标签，检查自己的list中的最后一个 wt -->输出/remove
             System.out.print("T1-4遇到自己结束标签，");
             if(!list.isEmpty()){
+                WaitTask wtask = (WaitTask)list.get(list.size()-1);
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
-                    System.out.print("T1-4是整个XPath，");
-                    WaitTask wtask = (WaitTask)list.get(list.size()-1);
+                    System.out.print("T1-4是整个XPath，需要找到最后一个wt来对其判断，");
                     if(wtask.hasReturned()){
                         System.out.print("T1-4谓词结果已处理完毕,");
                         if(wtask.getPredR()){
-                            System.out.println("满足--输出&&删除");
+                            System.out.println("满足--输出&删除list.size()-1");
                             wtask.output();
-//                            curactor.output(wtask);
                         }else{
                             System.out.println("不满足--删除");
                         }
                         list.remove(wtask);  //(id,true/false,tag)
                     } else {
-                        System.out.print("T1-4谓词还没返回结果||返回结果还未处理,");
-                        do{
-                            try {
-                                Thread.sleep(1);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        } while(curactor.getMessageCount() == 0);
+                        if(curactor.getMessageCount() > 0){
+                            System.out.print("T1-4谓词已有返回结果，还未处理,");
+                        }else{
+                            System.out.println("T1-4谓词还没返回结果||返回结果还未处理,等啊等。。。");
+                            do{
+                                try {
+                                    Thread.sleep(1);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            } while(curactor.getMessageCount() == 0);
+                        }
 
-                        System.out.println("T1-4谓词返回结果了--先处理 predR");
+                        System.out.println("T1-4谓词返回结果了--先去处理 predR");
                         dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                         actorManager.send(dmessage,curactor,curactor);
                         return false; //中断此次处理--先处理返回的结果
                     }
                 }else{
-                    System.out.println("T1-4 是个后续path--查看最后一个 wt的当前状态");
-                    WaitTask wtask = (WaitTask)list.get(list.size()-1);
+                    System.out.println("T1-4 是个后续path--查看最后一个 wt 的当前状态");
                     if(!wtask.hasReturned()){
                         System.out.println("T1-4 最后一个 wt 还未对predR进行处理 || predR还未返回");
                         dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
                         actorManager.send(dmessage,curactor,curactor);
                         return false; //中断此次处理--先处理返回的结果
+                    }else if(!wtask.isSatisfiedOut()){
+                        System.out.println("predR==false,删除");
+                        list.remove(wtask);
                     }
                 }
-            }else
+            }else{
                 System.out.println("T1-4未找到匹配的开始标记 || 谓词返回false");
+            }
         }else if (layer == getLevel() - 1) { // 遇到上层结束标签
             // T1-5 时，与T1-5 放在同一个栈，T1-6~T1-8 放在pathstack
             System.out.println("T1-4遇到上层结束标签-->传递结果");
@@ -138,10 +164,6 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                         curactor.processSameADPath(new Object[]{num,wtask});
                     }
                 }
-//                else{
-//                    actors.remove(curactor.getName());
-//                    actorManager.detachActor(curactor);
-//                }
             }else{
                 System.out.println("T1-4未找到匹配标记--上传NF");
                 curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));
@@ -151,22 +173,20 @@ public class StateT1_4 extends StateT1 implements Cloneable {
     }
     /*
     * 收到谓词的返回结果：
-    * 找到T1-4.list的中最后一个元素，设置
+    * 找到T1-4.list中相应的元素，设置
     * */
     @Override
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
         Boolean pred = (Boolean)atask.getObject();
-        WaitTask wt = (WaitTask)list.get(list.size()-1);  //最后一个元素
         System.out.println("T1-4 对返回的predR进行处理，到结束标记的时候，true-输出/false-删除,predR == " + pred);
-        wt.setPredR(pred);   //true/false先设置--到结束标记的时候，false的删除
 
-//        for(int i=list.size()-1;i>=0;i--){
-//            WaitTask wt = (WaitTask)list.get(i);  //最后一个元素
-//            if(wt.getId() == atask.getId()){
-//                wt.setPredR(pred);   //true/false先设置--到结束标记的时候，false的删除
-//                return;
-//            }
-//        }
+        for(int i=list.size()-1;i>=0;i--){
+            WaitTask wt = (WaitTask)list.get(i);  //最后一个元素
+            if(wt.getId() == atask.getId()){
+                wt.setPredR(pred);   //true/false先设置--到结束标记的时候，false的删除
+                return;
+            }
+        }
     }
 
 }

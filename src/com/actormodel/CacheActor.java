@@ -21,11 +21,9 @@ public class CacheActor extends AbstractActor {
         String subject = message.getSubject();
 
         if(subject.equals("node")){  //收到数据块
-//            System.out.println(this.getName() + " 中添加第" + ++index + "块数据块");
             ++index;
             linkList.addNode((ActorTask[]) (((ActorTask) message.getData()).getObject()));
             if(linkList.getSize() == 1){    //第一次发送
-                System.out.println(this.getName() + " 第一次发送数据块给 mainActor");
                 DefaultMessage messages = new DefaultMessage("nodeID",new Object[]{index,0});
                 this.getManager().send(messages,this,manager.getActors()[0]);  //mainActor
             }

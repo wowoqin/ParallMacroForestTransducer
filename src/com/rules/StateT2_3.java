@@ -131,7 +131,7 @@ public class StateT2_3 extends StateT2{
             }
         }else{     //false
             if(atask.isInSelf()){
-                list.remove();
+                list.remove(list.size()-1);
             }else
                 list.clear();
         }

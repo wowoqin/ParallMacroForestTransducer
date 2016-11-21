@@ -27,6 +27,10 @@ public class TaskActor extends AbstractActor {
     protected int waitId = 0;      //新索引内的新标签下标
     protected ArrayList<Object[]> mylist = new ArrayList<>();
 
+    public ArrayList<Object[]> getMylist() {
+        return mylist;
+    }
+
     public int getWaitId() {
         return waitId;
     }
@@ -107,7 +111,7 @@ public class TaskActor extends AbstractActor {
         String subject = message.getSubject();
         if("res&&push".equals(subject)){                // data是一个数组：data = {stack,task}--初始化
             System.out.println(this.getName() + " 的初始操作--res&&push");
-            State.actors.put(this.getName(),this);
+            State.actors.put(this.getName(), this);
             Object[] datas = (Object[]) message.getData();
             this.setResActor(message.getSource());
             this.setMyStack((Stack) datas[0]);
@@ -129,35 +133,53 @@ public class TaskActor extends AbstractActor {
             int index = (Integer) data[0];
             int id = (Integer) data[1];
 
-            if(!mylist.isEmpty()){
-                Object[] first = mylist.get(0);
-                if(index < (Integer) first[0] || (index == (Integer) first[0] && id <(Integer) first[1])){
-                    mylist.add(0,data);   //确保list中第一位是最小的index--/b/c的这种情况
-                    setWaitIndex(index);
-                    setWaitId(id);
+            if(myStack.isEmpty()){
+                System.out.println(this.getName() + " 栈为空，直接压栈&直接去请求数据块");
+                try {
+                    this.pushTaskDo((ActorTask)data[2]);
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
                 }
-                else mylist.add(data);
+
+                if(!mylist.isEmpty()){
+                    Object[] tuple = mylist.get(0);
+                    setWaitIndex((Integer)tuple[0]);
+                    setWaitId((Integer)tuple[1]);
+                }
+
+                DefaultMessage message1 = new DefaultMessage("modifyIndex",new Object[]{index,id});
+                this.getManager().send(message1, this, State.actors.get("cacheActor"));
             }else{
-                //第一次添加的时候不可能当前actor就处理到了要修改的标签处，
-                // 肯定currIndex < waitIndex ||(currIndex < waitIndex && currId < waitId)
-                if(currIndex == 0){  //该actor刚做了初始化操作，直接去分配index
-                    DefaultMessage message1 = new DefaultMessage("modifyIndex",new Object[]{index,id});
-                    this.getManager().send(message1, this, State.actors.get("cacheActor"));
+                if(!mylist.isEmpty()){
+                    Object[] first = mylist.get(0);
+                    if(index < (Integer) first[0] || (index == (Integer) first[0] && id <(Integer) first[1])){
+                        mylist.add(0,data);   //确保list中第一位是最小的index--/b/c的这种情况
+                        setWaitIndex(index);
+                        setWaitId(id);
+                    } else
+                        mylist.add(data);
                 }else{
-                    mylist.add(data);
-//                    DefaultMessage message1 = new DefaultMessage("modifyIndex",new Object[]{index,id});
-//                    this.getManager().send(message1, this, State.actors.get("cacheActor"));
-                    setWaitIndex(index);
-                    setWaitId(id);
+                    //第一次添加的时候不可能当前actor就处理到了要修改的标签处，
+                    // 肯定currIndex < waitIndex ||(currIndex < waitIndex && currId < waitId)
+                    if(currIndex == 0){  //该actor刚做了初始化操作，直接去分配index
+                        DefaultMessage message1 = new DefaultMessage("modifyIndex",new Object[]{index,id});
+                        this.getManager().send(message1, this, State.actors.get("cacheActor"));
+                    }else{
+                        mylist.add(data);
+                        setWaitIndex(index);
+                        setWaitId(id);
+                    }
                 }
             }
-        }
-        else if("wait".equals(subject)){
+
+        }else if("modifyIndex".equals(subject)){
+            this.getManager().send(message, this, State.actors.get("cacheActor"));
+        } else if("wait".equals(subject)){
             //输入用完--数据块没了，等 10ms，然后继续发送修改index 的请求，看是否能成功吧
             System.out.print(this.getName() + " 接到消息：cacheactor 中输入用完--需要等待，");
             Object[] data = (Object[])message.getData();
 
-            if(this.getMessageCount()>0){
+            if(this.getMessageCount() > 0){
                 System.out.print("但 messagecount > 0,先去处理其他消息吧");
             }else{
                 System.out.println("sleep一会继续 modifyIndex");
@@ -197,14 +219,8 @@ public class TaskActor extends AbstractActor {
 
 
                     if(getCurrIndex() == waitIndex && !mylist.isEmpty()){
-                        System.out.println(mylist.size());
+                        System.out.println(this.getName() + " 的缓存队列中的元素个数是：" + mylist.size());
                         for(int i = arrid;i < 2;i++){             //从给定的id开始遍历处理标签
-//                        if(this.getMessageCount()>0){         //已经收到了返回结果
-//                            System.out.println(this.getName() + " for循环处理标签过程中消息队列长度 > 0，优先处理其他结果");
-//                            DefaultMessage message1 = new DefaultMessage("nodeID",new Object[]{index,i});
-//                            getManager().send(message1,this,this);
-//                            return; //中断此次处理--先处理返回的结果
-//                        }else
                             if(!getMyStack().isEmpty()){
                                 currId = i;
                                 if(currId == waitId){
@@ -250,12 +266,6 @@ public class TaskActor extends AbstractActor {
                         }
                     }else{   //直接处理
                         for(int i = arrid;i < 2;i++){             //从给定的id开始遍历处理标签
-//                        if(this.getMessageCount()>0){         //已经收到了返回结果
-//                            System.out.println(this.getName() + " for循环处理标签过程中消息队列长度 > 0，优先处理其他结果");
-//                            DefaultMessage message1 = new DefaultMessage("nodeID",new Object[]{index,i});
-//                            getManager().send(message1,this,this);
-//                            return; //中断此次处理--先处理返回的结果
-//                        }else
                             if(!getMyStack().isEmpty()){
                                 state = (State)((ActorTask)ss.peek()).getObject();  //每次更新栈顶 state
                                 ActorTask atask = node.getAtask()[i];   //(layer,qName,true)
@@ -311,21 +321,22 @@ public class TaskActor extends AbstractActor {
 
             String name = null;
             if (state instanceof StateT3_1)
-                name = ((Integer) (stack).hashCode()).toString().concat("T3-1.prActor");
+                name = ((Integer) state.hashCode()).toString().concat("T3-1.prActor");
             else if (state instanceof StateT3_2)
-                name = ((Integer) (stack).hashCode()).toString().concat("T3-2.prActor");
+                name = ((Integer) state.hashCode()).toString().concat("T3-2.prActor");
             else if (state instanceof StateT3_3)
-                name = ((Integer) (stack).hashCode()).toString().concat("T3-3.prActor");
+                name = ((Integer) state.hashCode()).toString().concat("T3-3.prActor");
             else if (state instanceof StateT3_4)
-                name = ((Integer) (stack).hashCode()).toString().concat("T3-4.prActor");
+                name = ((Integer) state.hashCode()).toString().concat("T3-4.prActor");
             //push(q'')-->继续调用此函数判断压栈
-            if (stack.isEmpty()) {
+            if (!State.actors.containsKey(name)) {
                 Actor actor = getManager().createAndStartActor(this.getClass(), name);
                 DefaultMessage message = new DefaultMessage("res&&push", new Object[]{stack, new ActorTask(id, remainPred, false)});
                 getManager().send(message, this, actor);
             } else {
                 State currQ = (State) remainPred.copy();
                 currQ.setLevel(level);
+                currQ.setList(new ArrayList());
                 DefaultMessage message = new DefaultMessage("push", new ActorTask(id, currQ, false));
                 Actor actor = State.actors.get(name);
                 getManager().send(message, this, actor);
@@ -344,6 +355,24 @@ public class TaskActor extends AbstractActor {
     }
 
     public void sendPredsResult(ActorTask actorTask){   // 谓词检查成功，上传结果（id，true）给相应的 wt
+//        if(myStack.isEmpty() && !mylist.isEmpty()){
+//            System.out.println(this.getName() + " 上传完predR后缓冲list不为空&&stack为空：压栈、去取数据、重新设置WaitIndex/id");
+//            Object[] tuple = mylist.get(0);
+//            try {
+//                this.pushTaskDo((ActorTask)tuple[2]);
+//            } catch (CloneNotSupportedException e) {
+//                e.printStackTrace();
+//            }
+//            DefaultMessage message1 = new DefaultMessage("modifyIndex",new Object[]{(Integer)tuple[0],(Integer)tuple[1]});
+//            this.getManager().send(message1, this, State.actors.get("cacheActor"));
+//            mylist.remove(0);
+//            if(!mylist.isEmpty()){
+//                tuple = mylist.get(0);
+//                setWaitIndex((Integer)tuple[0]);
+//                setWaitId((Integer)tuple[1]);
+//            }
+//        }
+
         DefaultMessage message=new DefaultMessage("repred",actorTask);
         if(actorTask.isInSelf()){
             System.out.println(this.getName() + " 上传谓词结果给自己");
@@ -352,6 +381,12 @@ public class TaskActor extends AbstractActor {
             System.out.println(this.getName() + " 上传谓词结果给上级");
             this.getManager().send(message, this, this.getResActor());
         }
+
+        System.out.println(this.getMessageCount());
+
+//        System.out.println(myStack.size()+","+mylist.size());
+
+
     }
 
     public boolean sendPathResult(ActorTask actorTask){    // path检查成功，上传结果（id，tag）给相应的 wt

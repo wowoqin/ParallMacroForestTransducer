@@ -7,6 +7,7 @@ import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Stack;
 
@@ -48,7 +49,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
         if ((layer >= getLevel()) && (tag.equals(_test))) {
             // 在 list 中添加需要等待匹配的任务模型
             System.out.print("T1-7.test匹配，add(wt)，");
-            list.add(new LinkedList<WaitTask>());
+            list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, true, null));
             String name = ((Integer)this.hashCode()).toString().concat("T1-7.paActor");
             Actor actor;
@@ -61,21 +62,21 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 dmessage = new DefaultMessage("res&&push",new Object[]{this._pathstack,new ActorTask(layer, _q1, false)});
                 actorManager.send(dmessage, curactor, actor);
             } else{  // 若path  actor 已经创建了,则发送 q'' 给 paActor即可
-                System.out.println(" pathactor != null，q1直接压栈");
+                System.out.println(" pathactor != null，q1估计会add到curractor的缓存list中去");
                 actor = actors.get(name);
                 State currQ = (State)_q1.copy();
-                currQ.list.clear();
+                currQ.list = new ArrayList();
                 currQ.setLevel(layer + 1);
                 aatask = new ActorTask(layer,currQ,false);
             }
 
             if(id == 1){
-                System.out.println(" 当前数据块处理结束--要让 "+name+" 先去cacheActor那里modifyIndex：++index");
-                DefaultMessage message1 = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask,new WaitTask(layer,true,null)});
+                System.out.println(" 当前数据块处理结束--要让 "+name+" 先去cacheActor那里取到 Index：++index");
+                DefaultMessage message1 = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
                 actorManager.send(message1, curactor, actor);
             }else {
-                System.out.println("当前数据块还没结束，currActor告诉 "+name+" 先去cacheActor那里modifyIndex：index");
-                dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask,new WaitTask(layer,true,null)});
+                System.out.println("当前数据块还没结束，currActor告诉 "+name+" 先去cacheActor那里取到 Index：index");
+                dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask});
                 actorManager.send(dmessage, curactor, actor);
             }
 
@@ -90,7 +91,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
 
         if (tag.equals(_test)) {  // 遇到自己的结束标签，检查
             if(!list.isEmpty()){
-                LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size()-1);
+                ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     //若是要输出，则输出list中最后一个list
                     System.out.print("T1-7是个XPath，list.size()= "+list.size());
@@ -101,7 +102,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                             for(WaitTask wwtask:llist){
                                 curactor.output(wwtask);
                             }
-                            list.remove(llist);   //删除这个llist
+                            list.remove(list.size()-1);   //删除这个llist
                         }else{   //还未处理返回结果
                             System.out.println(",T1-7 path还没返回结果||返回结果还未处理,等啊等。。。");
                             do{
@@ -158,7 +159,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 int num = 0;
                 WaitTask wtask = null;
                 for(int i=0;i<list.size();i++){
-                    LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(i);
+                    ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
                     if(!llist.isEmpty()){
                         num += llist.size();//上传的数量
                         if(wtask == null)
@@ -212,7 +213,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
         System.out.print("T1-7 处理pathR，");
 
         for(int i = list.size()-1;i >= 0;i--){
-            LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(i);
+            ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
             if(!llist.isEmpty()){
                 WaitTask wt = llist.get(0);
                 if(wt.getId() == atask.getId()){

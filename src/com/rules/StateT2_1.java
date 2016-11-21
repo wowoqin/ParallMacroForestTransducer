@@ -41,16 +41,11 @@ public class StateT2_1 extends StateT2 {
                 curactor.pushTaskDo(new ActorTask(idd, waitState, isInSelf));
                 //设置 T3-1.q'''检查成功（发消息而不是直接设置pred：是因为万一q''已经是检查成功的了呢）
                 curactor.sendPredsResult(new ActorTask(idd, true, true));//确定是给自己的--当前栈顶已经是 qw
-            }else{  //T2-1
+            }else{      //T2-1
                 //发送谓词结果 && pop 当前栈顶
                 System.out.println("T2-1 检查成功，pop && 返回 true");
                 curactor.popFunction();
                 curactor.sendPredsResult(new ActorTask(idd, true, isInSelf));
-//                if(curactor.getMyStack().isEmpty()){
-//                    System.out.println("T2-1所在的当前 actor 为空，detach");
-////                    actors.remove(curactor.getName());
-////                    actorManager.detachActor(curactor);
-//                }
             }
         }
         return true;
@@ -81,10 +76,6 @@ public class StateT2_1 extends StateT2 {
                     return false;
                 }
             }
-//            else {
-//                actors.remove(curactor.getName());
-//                actorManager.detachActor(curactor);
-//            }
         }
         return true;
     }
@@ -126,7 +117,7 @@ public class StateT2_1 extends StateT2 {
             }
         }else{     //false
             if(atask.isInSelf()){   //T2-1检查失败
-                list.remove();
+                list.remove(list.size()-1);
             }else
                 list.clear();   //并列谓词检查失败
         }

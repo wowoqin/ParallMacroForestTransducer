@@ -6,6 +6,7 @@ import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Stack;
 
@@ -44,7 +45,7 @@ public class StateT1_5 extends StateT1{
 
         if((getLevel() == layer) && (tag.equals(_test))) {
             System.out.println("T1-5匹配到开始标签，q1压栈 && add(wt)");
-            list.add(new LinkedList<WaitTask>());
+            list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, true, null));
             _q1.setLevel(layer + 1);
             curactor.pushTaskDo(new ActorTask(layer,_q1,true));
@@ -62,13 +63,14 @@ public class StateT1_5 extends StateT1{
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     System.out.print("T1-5 是个 XPath，");
-                    LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(0);
+                    ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(0);
                     if(!llist.isEmpty()){
                         WaitTask wtask = llist.get(0);
                         if(wtask.hasReturned()){
-                            System.out.println("T1-5的 path 结果已处理完毕--输出llist");
+                            System.out.println("T1-5的 path 结果已处理完毕--输出&删除llist");
                             for(WaitTask wwtask:llist)
                                 curactor.output(wwtask);
+                            list.remove(llist);   //删除llist
                         } else{  //还未处理返回结果
                             System.out.println("T1-5的path结果还未处理--先处理pathR，重新将结束标签发送给自己");
                             dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
@@ -76,12 +78,12 @@ public class StateT1_5 extends StateT1{
                             return false; //中断此次处理--先处理返回的结果
                         }
                     }else{
-                        System.out.println("T1-5未找到匹配的开始标记 || path返回结果为NF");
+                        System.out.println("T1-5.path返回结果为NF");
                         list.remove(llist);   //删除最后一个为空的llist
                     }
                 }else{
                     System.out.println("T1-5是个后续path--检查最后一个list的path的返回情况");
-                    LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size()-1);
+                    ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
                     if(!llist.isEmpty()){
                         WaitTask wtask = llist.get(0);
                         if(!wtask.hasReturned()){
@@ -90,7 +92,7 @@ public class StateT1_5 extends StateT1{
                             return false; //中断此次处理--先处理返回的结果
                         }
                     }else{
-                        System.out.println("T1-5未找到匹配的开始标记 || path返回结果为NF");
+                        System.out.println("T1-5.path返回结果为NF");
                         list.remove(llist);   //删除最后一个为空的llist
                     }
                 }
@@ -110,7 +112,7 @@ public class StateT1_5 extends StateT1{
                 WaitTask wtask = null;
 
                 for(int i=0;i<list.size();i++){
-                    LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(i);
+                    ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
                     if(!llist.isEmpty()){
                         num += llist.size();   //上传的数量
                         if(wtask == null)
@@ -150,9 +152,10 @@ public class StateT1_5 extends StateT1{
     @Override
     public void pathMatchFunction(ActorTask atask) {
         System.out.print("T1-5 处理pathR，");
-        LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size() - 1);  //最后一个list
+        ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size() - 1);  //最后一个list
         Object[] obj = (Object[])atask.getObject();
         int num = (Integer)obj[0];
+
         if(num == 0){
             System.out.println("pathR==notFound，清空llist");
             llist.clear();     //清空llist

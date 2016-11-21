@@ -7,8 +7,8 @@ import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 /**
  * Created by qin on 2015/10/10.
@@ -19,8 +19,7 @@ public  abstract class State  implements Cloneable {
     public static DefaultActorManager actorManager = DefaultActorManager.getDefaultInstance();
     public static HashMap<String,Actor> actors = new HashMap();
 
-    protected LinkedList list = new LinkedList();  //每一个 state 有一个 list，存放其 wt
-
+    protected ArrayList list = new ArrayList();  //每一个 state 有一个 list，存放其 wt
     public  abstract boolean startElementDo(int index,int id,ActorTask atask,TaskActor curactor) throws CloneNotSupportedException;
     public  abstract boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor);
 
@@ -29,16 +28,20 @@ public  abstract class State  implements Cloneable {
         this.level=level;
     }
 
-    public LinkedList getList() {
+    public ArrayList getList() {
         return list;
     }
 
     public void addWTask(WaitTask wtask){
-        if(!list.isEmpty() && list.get(list.size()-1) instanceof LinkedList){
-            ((LinkedList<WaitTask>)list.get(list.size()-1)).add(wtask);
+        if(!list.isEmpty() && list.get(list.size()-1) instanceof ArrayList){
+            ((ArrayList<WaitTask>)list.get(list.size()-1)).add(wtask);
         }else{
             list.add(wtask);
         }
+    }
+
+    public void setList(ArrayList list) {
+        this.list = list;
     }
 
     public abstract Object copy() throws CloneNotSupportedException;

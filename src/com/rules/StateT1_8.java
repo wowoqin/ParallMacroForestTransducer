@@ -7,6 +7,7 @@ import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Stack;
 
@@ -50,7 +51,7 @@ public class StateT1_8 extends StateT1 {
 
         if ((layer >= getLevel()) && (tag.equals(_test))) {
             System.out.print("T1-8.test匹配，add(wt)，");
-            list.add(new LinkedList<WaitTask>());
+            list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, null, null));
             String name = ((Integer)this.hashCode()).toString().concat("T1-8.prActor");
             Actor actor;
@@ -66,6 +67,7 @@ public class StateT1_8 extends StateT1 {
                 actor = actors.get(name);
                 State currQ = (State) _q3.copy();
                 currQ.setLevel(layer + 1);
+                currQ.list.clear();
                 dmessage = new DefaultMessage("push", new ActorTask(layer, currQ, false));
                 actorManager.send(dmessage, curactor, actor);
             }
@@ -92,6 +94,7 @@ public class StateT1_8 extends StateT1 {
                 actor=actors.get(name);
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
+                currQ.list.clear();
                 dmessage = new DefaultMessage("push",new ActorTask(layer,currQ,false));
                 actorManager.send(dmessage, curactor, actor);
             }
@@ -116,7 +119,7 @@ public class StateT1_8 extends StateT1 {
 
         if (tag.equals(_test)) {  // 遇到自己的结束标签，检查
             if(!list.isEmpty()) {   //至少还是有结果的
-                LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size()-1);
+                ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     System.out.print("T1-8是个XPath，");
                     if(!llist.isEmpty()){
@@ -126,7 +129,7 @@ public class StateT1_8 extends StateT1 {
                             for(WaitTask wwtask:llist){
                                 curactor.output(wwtask);
                             }
-                            list.remove(llist);   //删除这个llist
+                            list.remove(list.size()-1);   //删除这个llist
                         }else{//还未处理返回结果
                             System.out.print("T1-8谓词/path还没返回结果||返回结果还未处理,等啊等。。。");
                             do{
@@ -144,7 +147,7 @@ public class StateT1_8 extends StateT1 {
                         }
                     }else{
                         System.out.println("T1-8.path/pred 匹配失败！");
-                        list.remove(llist);   //删除这个为空的llist
+                        list.remove(list.size()-1);   //删除这个为空的llist
                     }
                 }else{ //肯定是要上传的，但是若此时还未处理path的返回结果，就该等待先处理--最后一个llist中的元素
                     System.out.print("T1-8是后续path，");
@@ -174,7 +177,7 @@ public class StateT1_8 extends StateT1 {
                         }
                     }else{
                         System.out.println("T1-8.path/pred 匹配失败！");
-                        list.remove(llist);   //删除这个为空的llist
+                        list.remove(list.size()-1);   //删除这个为空的llist
                     }
                 }
             }else{
@@ -192,7 +195,7 @@ public class StateT1_8 extends StateT1 {
                 int num = 0;
                 WaitTask wtask = null;
                 for(int i=0;i<list.size();i++){
-                    LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(i);
+                    ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
                     if(!llist.isEmpty()){
                         num += llist.size();//上传的数量
                         if(wtask == null)
@@ -244,7 +247,7 @@ public class StateT1_8 extends StateT1 {
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
         Boolean pred = (Boolean)atask.getObject();
         System.out.print("T1-8 处理 predR，");
-        LinkedList<WaitTask> llist = (LinkedList<WaitTask>)list.get(list.size()-1);
+        ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
         if(pred){
             System.out.println("preR==true，设置 llist 中所有 wt ");
             for(WaitTask wt:llist)

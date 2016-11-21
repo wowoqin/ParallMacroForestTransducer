@@ -124,7 +124,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
         }else{     //false
             if(atask.isInSelf()){
-                list.remove();
+                list.remove(list.size()-1);
             }else
                 list.clear();
         }

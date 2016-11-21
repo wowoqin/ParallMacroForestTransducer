@@ -42,9 +42,10 @@ public class StateT1_3 extends StateT1 implements Cloneable {
             System.out.print("T1-3遇到自己结束标签，");
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
-                    System.out.println("&& T1-3是整个XPath--输出最后一个标签");
+                    System.out.println("&& T1-3是整个XPath--输出最后一个标签 list.size= "+ list.size());
                     WaitTask wtask = (WaitTask)list.get(list.size()-1);  //每次输出最后一个元素
                     curactor.output(wtask);
+                    list.remove(wtask);
                 }else
                     System.out.println("&& T1-3是个后续path--等待上传");
             }else
@@ -74,10 +75,6 @@ public class StateT1_3 extends StateT1 implements Cloneable {
                         curactor.processSameADPath(new Object[]{num,wtask});
                     }
                 }
-//                else{
-//                    actors.remove(curactor.getName());
-//                    actorManager.detachActor(curactor);
-//                }
             }else{
                 System.out.println("T1-3未找到匹配的开始标记--上传NF");
                 curactor.sendPathResult(new ActorTask(0, new Object[]{0, "NF"}, isInself));

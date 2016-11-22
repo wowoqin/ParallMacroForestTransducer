@@ -14,6 +14,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.util.Objects;
 import java.util.Stack;
 
 /**
@@ -42,7 +43,7 @@ public class MySaxParser<T> extends DefaultHandler {
         Stack stack = new Stack();
 
         mainActor = manager.createAndStartActor(TaskActor.class, "mainActor");
-        message = new DefaultMessage("res&&push",new Object[]{stack,new ActorTask(currentQ.getLevel(),currentQ,true)});
+        message = new DefaultMessage("res&&push",new Object[]{stack, new ActorTask(currentQ.getLevel(),new Object[]{currentQ},true)});
         manager.send(message, null, mainActor);
     }
 

@@ -120,10 +120,10 @@ public class StateT1_2 extends StateT1 {
         Boolean pred = (Boolean)atask.getObject();
         WaitTask wt  = (WaitTask)list.get(list.size()-1);//最后一个元素
         if(pred){   //true
-            System.out.println("T2-1对谓词返回结果 true 进行处理--wt等待输出吧");
+            System.out.println("T1-2对谓词返回结果 true 进行处理--wt等待输出吧");
             wt.setPredR(pred);
         }else{     //false
-            System.out.println("T2-1对谓词返回结果 false 进行处理--remove(wt)");
+            System.out.println("T1-2对谓词返回结果 false 进行处理--remove(wt)");
             list.remove(list.size()-1);     //若是要输出--list不为空||若是要上传，留下的只是满足条件的
         }
     }

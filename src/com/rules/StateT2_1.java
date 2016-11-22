@@ -32,9 +32,9 @@ public class StateT2_1 extends StateT2 {
             boolean isInSelf = task.isInSelf();
 
             if(!list.isEmpty()){    //T3-1
-                System.out.println("T3-2.T2-1 检查成功，需要换为 qw");
+                System.out.println("T3-1.T2-1 检查成功，需要换为 qw");
                 WaitState waitState = new WaitState();
-                waitState.setLevel(((State) atask.getObject()).getLevel());
+                waitState.setLevel(getLevel());
                 waitState.list.add(this.list.get(0));
                 //(id,T2-1,isInself) 换为 （id,qw,isInself）
                 curactor.popFunction();
@@ -90,15 +90,14 @@ public class StateT2_1 extends StateT2 {
         Boolean pred = (Boolean)atask.getObject();
         WaitTask wt = (WaitTask)list.get(0);    //q==T3-1时，只有一个wt(id,null,null)
         if(pred){    //true
-            if(atask.isInSelf()){  //来自自己--T2-1检查成功
+            if(atask.isInSelf()){    //来自自己--T2-1检查成功
                 wt.setPredR(pred);
             }else{   //来自T3.preds'
-                wt = (WaitTask)list.get(0);
                 wt.setPathR(pred);
             }
             //设置完检查当前wt的表现形式
             {
-                Stack ss=curractor.getMyStack();
+                Stack ss = curractor.getMyStack();
                 ActorTask task = ((ActorTask) ss.peek());//(id,T2-2,isInself)
                 int idd = task.getId();
                 boolean isInSelf = task.isInSelf();

@@ -57,7 +57,7 @@ public class StateT1_8 extends StateT1 {
             Actor actor;
             ActorTask aatask;
 
-            if (this._predstack.isEmpty()) {// 若predstack 为空
+            if (this._predstack.isEmpty()) {   // 若predstack 为空
                 System.out.println("谓词actor == null,先创建 prActor");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
@@ -65,7 +65,7 @@ public class StateT1_8 extends StateT1 {
                         new Object[]{this._predstack, new ActorTask(layer, new Object[]{_q3,index,id}, false)});
                 actorManager.send(dmessage, curactor, actor);
             } else {  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
-                System.out.println("predactor != null，q3直接压栈");
+                System.out.print("predactor != null，");
                 actor = actors.get(name);
                 State currQ = (State) _q3.copy();
                 currQ.setLevel(layer + 1);
@@ -110,7 +110,7 @@ public class StateT1_8 extends StateT1 {
                         new Object[]{this._pathstack,new ActorTask(layer, new Object[]{_q1}, false)});
                 actorManager.send(dmessage, curactor, actor);
             } else{  // 若path  actor 已经创建了,则发送 q'' 给 paActor即可
-                System.out.println("pathactor != null，q1直接压栈");
+                System.out.print("pathactor != null，");
                 actor=actors.get(name);
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
@@ -184,7 +184,7 @@ public class StateT1_8 extends StateT1 {
                         }
                     }else{
                         System.out.println("T1-8.path/pred 匹配失败！");
-                        list.remove(list.size()-1);   //删除这个为空的llist
+                        list.remove(llist);   //删除这个为空的llist
                     }
                 }else{ //肯定是要上传的，但是若此时还未处理path的返回结果，就该等待先处理--最后一个llist中的元素
                     System.out.print("T1-8是后续path，");
@@ -193,28 +193,22 @@ public class StateT1_8 extends StateT1 {
                         if(!wtask.hasReturned()){
                             System.out.println("T1-8的path/pred结果还未处理");
                             //需要当前方法return，去处理下一个消息--即谓词返回结果，并保存当前（index，id）
-                            if(curactor.getMessageCount() > 0){
-                                DefaultMessage message = new DefaultMessage("nodeID",new Object[]{index,id});
-                                actorManager.send(message,curactor,curactor);
-                                return false; //中断此次处理--先处理返回的结果
-                            }else{
-                                System.out.println("T1-8的path/pred还未返回结果，等待path/pred的结果处理了再继续扫描！");
-                                while(curactor.getMessageCount()==0){
-                                    try {
-                                        Thread.sleep(1);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
+                            System.out.println("T1-8的path/pred还未返回结果，等待path/pred的结果处理了再继续扫描！");
+                            while(curactor.getMessageCount()==0){
+                                try {
+                                    Thread.sleep(1);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
                                 }
-
-                                DefaultMessage message = new DefaultMessage("nodeID",new Object[]{index,id});
-                                actorManager.send(message, curactor, curactor);
-                                return false; //中断此次处理--先处理返回的结果
                             }
+
+                            DefaultMessage message = new DefaultMessage("nodeID",new Object[]{index,id});
+                            actorManager.send(message, curactor, curactor);
+                            return false; //中断此次处理--先处理返回的结果
                         }
                     }else{
                         System.out.println("T1-8.path/pred 匹配失败！");
-                        list.remove(list.size()-1);   //删除这个为空的llist
+                        list.remove(llist);   //删除这个为空的llist
                     }
                 }
             }else{
@@ -284,15 +278,23 @@ public class StateT1_8 extends StateT1 {
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
         Boolean pred = (Boolean)atask.getObject();
         System.out.print("T1-8 处理 predR，");
-        ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
-        if(pred){
-            System.out.println("preR==true，设置 llist 中所有 wt ");
-            for(WaitTask wt:llist)
-                wt.setPredR(pred);//true--设置
-        } else {
-            System.out.println("preR==false，清空llist");
-            llist.clear();  //false--清空当前llist
-            //告诉path不用继续检查了--
+        for(int i = list.size()-1;i >= 0;i--){
+            ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
+            if(!llist.isEmpty()){
+                WaitTask wt = llist.get(0);
+                if(wt.getId() == atask.getId()){
+                    if(pred){
+                        System.out.println("preR==true，设置 llist 中所有 wt ");
+                        for(WaitTask wtt:llist)
+                            wtt.setPredR(pred);//true--设置
+                    } else {
+                        System.out.println("preR==false，清空llist");
+                        llist.clear();  //false--清空当前llist
+                        //告诉path不用继续检查了--
+                    }
+                    return;
+                }
+            }
         }
     }
 

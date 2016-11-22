@@ -22,6 +22,26 @@ public class WaitState extends State {
         int layer = atask.getId();
 
         if (layer == getLevel() - 1) {
+            //遇到上层结束标签但是preds'还没返回结果，等
+            if(!list.isEmpty()){
+                WaitTask wt = (WaitTask)list.get(0);
+                if(!wt.hasReturned()){
+                    System.out.println("qw.preds'还未返回结果");
+                    do{
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } while(curactor.getMessageCount() == 0);
+
+                    System.out.println("qw.pred'返回结果了--先去处理 predR");
+                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    actorManager.send(dmessage,curactor,curactor);
+                    return false; //中断此次处理--先处理返回的结果
+                }
+            }
+
             Stack ss = curactor.getMyStack();
             ActorTask task=((ActorTask) ss.peek());//(id,qw,isInself)
             int idd = task.getId();
@@ -32,8 +52,7 @@ public class WaitState extends State {
             curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
             //当前栈不为空，栈顶进行endElementDo 操作（输出（T1-2或者T1-6）/弹栈（相同结束标签的waitState）等）
             if (!ss.isEmpty()) {
-                task = ((ActorTask) ss.peek());
-                State state=((State) (task.getObject()));
+                State state = ((State) (((ActorTask) ss.peek()).getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
                     dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
@@ -60,19 +79,30 @@ public class WaitState extends State {
         WaitTask wt = (WaitTask)list.get(0);   //只有一个元素
         System.out.print("qw 处理 predR，");
         if(pred){    //true
-            wt.setPathR(pred);
+            if(atask.isInSelf()){  //来自自己--T2-1检查成功
+                wt.setPredR(pred);
+            }else{   //来自T3.preds'
+                wt.setPathR(pred);
+            }
 
-            Stack ss=curractor.getMyStack();
-            ActorTask task = ((ActorTask) ss.peek());//(id,T2-4,isInself)
-            int idd = task.getId();
-            boolean isInSelf = task.isInSelf();
-            curractor.popFunction(); //弹栈
-            curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //传递结果
+            //设置完检查当前wt的表现形式
+            {
+                Stack ss = curractor.getMyStack();
+                ActorTask task = ((ActorTask) curractor.getMyStack().peek());//(id,qw,isInself)
+                int idd = task.getId();
+                boolean isInSelf = task.isInSelf();
 
-            if(!ss.isEmpty()){
-                State state = (State)((ActorTask) ss.peek()).getObject();
-                if(state instanceof StateT2_3 ||state instanceof StateT2_4 && !isInSelf)
-                    curractor.processSameADPred();
+                if(wt.isPredsSatisified()) {   //(id,true,true)--T3-1检查成功--上传
+                    curractor.popFunction();   //弹栈
+                    curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //给上级
+
+                    if(!ss.isEmpty()){
+                        State state = (State)((ActorTask) ss.peek()).getObject();
+                        if(state instanceof StateT2_3 ||state instanceof StateT2_4)
+                            curractor.processSameADPred();
+                    }
+                }
+                //(id,null,true)--不做任何处理
             }
         }else{       //false--T3.preds'检查失败
             list.clear();

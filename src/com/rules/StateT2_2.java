@@ -29,7 +29,7 @@ public class StateT2_2 extends StateT2 {
         int layer = atask.getId();
         String tag = atask.getObject().toString();
 
-        if((layer==getLevel()) && (tag.equals(_test))){     // T2-2 的test匹配
+        if((layer == getLevel()) && (tag.equals(_test))){     // T2-2 的test匹配
             addWTask(new WaitTask(layer, null, true));
             _q3.setLevel(layer + 1);
             curactor.pushTaskDo(new ActorTask(layer, new Object[]{_q3,index,id}, true));   //确定是给自己的
@@ -50,7 +50,7 @@ public class StateT2_2 extends StateT2 {
           2. 自己能遇到上层结束标签，谓词检查失败，弹栈 && remove 等待当前栈顶T2-2结果的 wt  */
         if (atask.getId() == getLevel() - 1) {   //上层结束标签--检查失败
             Stack ss = curactor.getMyStack();
-            ActorTask task = ((ActorTask) ss.peek());   //(id,T2-2,isInself)
+            ActorTask task = (ActorTask) ss.peek();   //(id,T2-2,isInself)
             int idd = task.getId();
             boolean isInSelf = task.isInSelf();
             //pop(T2-2)
@@ -102,16 +102,14 @@ public class StateT2_2 extends StateT2 {
                         curractor.popFunction(); //弹栈
                         curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //给上级
                     }
-                }
-                else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-2,isInself)换为（id,qw,isInself）
+                } else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-2,isInself)换为（id,qw,isInself）
                     curractor.popFunction(); //弹栈
-                    WaitState waitState=new WaitState();
+                    WaitState waitState = new WaitState();
                     waitState.setLevel(((State) atask.getObject()).getLevel());
                     waitState.list.add(wt);
                     curractor.getMyStack().push(new ActorTask(idd, waitState, isInSelf));
                 }
             }
-
         }else{     //false
             if(atask.isInSelf()){
                 list.remove(list.size()-1);

@@ -34,7 +34,7 @@ public class StateT2_3 extends StateT2{
 
             if(!list.isEmpty()){    //T3-3 && T3-3.q'''检查成功
                 WaitState waitState = new WaitState();
-                waitState.setLevel(((State) atask.getObject()).getLevel());
+                waitState.setLevel(getLevel());
                 waitState.getList().add(list.get(0));
                 curactor.popFunction();
                 //(id,T2-3,isInself) 换为 （id,qw,isInself）
@@ -102,7 +102,6 @@ public class StateT2_3 extends StateT2{
             if(atask.isInSelf()){  //来自自己--T2-3检查成功
                 wt.setPredR(pred);
             }else{   //来自T3.preds'
-                wt = (WaitTask)list.get(0);
                 wt.setPathR(pred);
             }
             //设置完检查当前wt的表现形式

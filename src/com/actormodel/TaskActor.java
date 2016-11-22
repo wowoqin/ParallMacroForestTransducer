@@ -132,9 +132,9 @@ public class TaskActor extends AbstractActor {
             Object[] data = (Object[]) message.getData();
             int index = (Integer) data[0];
             int id = (Integer) data[1];
-            System.out.println(this.getName() + ".needModifyIndex操作，");
+            System.out.print(this.getName() + ".needModifyIndex操作，");
             if(myStack.isEmpty()){
-                System.out.println("但当前栈为空，直接压栈&直接去请求数据块");
+                System.out.println("needModifyIndex中当前栈为空(pred检查成功直接已经弹栈的)，直接压栈&直接去请求数据块");
                 try {
                     this.pushTaskDo((ActorTask)data[2]);
                 } catch (CloneNotSupportedException e) {
@@ -151,9 +151,9 @@ public class TaskActor extends AbstractActor {
                 }
             }else{
                 if(!this.mylist.isEmpty()){
-                    System.out.println("但当前栈不为空&mylist不为空：添加");
+                    System.out.println("但当前栈不为空&mylist不为空：直接添加");
                     Object[] first = mylist.get(0);
-                    if(index < (Integer) first[0] || (index == (Integer) first[0] && id <(Integer) first[1])){
+                    if(index < waitIndex || (index == waitIndex && id < waitId)){
                         mylist.add(0,data);   //确保list中第一位是最小的index--/b/c的这种情况
                         setWaitIndex(index);
                         setWaitId(id);
@@ -162,7 +162,7 @@ public class TaskActor extends AbstractActor {
                 }else{
                     //第一次添加的时候不可能当前actor就处理到了要修改的标签处，
                     // 肯定currIndex < waitIndex ||(currIndex < waitIndex && currId < waitId)
-                    System.out.print(" 第一次在mylist中添加，");
+                    System.out.println(" 第一次在mylist中添加");
                     mylist.add(data);
                     setWaitIndex(index);
                     setWaitId(id);
@@ -416,10 +416,11 @@ public class TaskActor extends AbstractActor {
     public void processSameADPred(){
         System.out.println(this.getName() +" processSameADPred 操作");
         Stack currstack = this.getMyStack();
-        if(!currstack.isEmpty()){    //传过去的结果只会对list的最后一个元素做检查--所以id就起到关键性的作用
+        while(!currstack.isEmpty()){    //传过去的结果只会对list的最后一个元素做检查--所以id就起到关键性的作用
             ActorTask task = (ActorTask)currstack.peek();
             int id = task.getId();   // 当前栈顶 taskmodel 的 id
             boolean isInSelf = task.isInSelf();
+            this.popFunction();
             this.sendPredsResult(new ActorTask(id, true, isInSelf));
         }
     }

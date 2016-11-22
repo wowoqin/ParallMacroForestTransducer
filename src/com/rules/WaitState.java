@@ -32,7 +32,7 @@ public class WaitState extends State {
             curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
             //当前栈不为空，栈顶进行endElementDo 操作（输出（T1-2或者T1-6）/弹栈（相同结束标签的waitState）等）
             if (!ss.isEmpty()) {
-                task=((ActorTask) ss.peek());
+                task = ((ActorTask) ss.peek());
                 State state=((State) (task.getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){

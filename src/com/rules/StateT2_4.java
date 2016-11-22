@@ -7,6 +7,7 @@ import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 /**
@@ -35,17 +36,19 @@ public class StateT2_4 extends StateT2 implements Cloneable{
         if ((layer >= getLevel()) && (tag.equals(_test))) {
             // 等 q' 的结果
             addWTask(new WaitTask(layer, null,true));
-            String name=((Integer)this._predstack.hashCode()).toString().concat("T2-4.prActor");
+            String name=((Integer)this.hashCode()).toString().concat("T2-4.prActor");
             if(this._predstack.isEmpty()){// 若 prActor还没有创建 ，predstack 一定为空
                 Actor actor=actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
-                dmessage=new DefaultMessage("res&&push",new Object[]{this._predstack,new ActorTask(layer, _q3, false)});
+                dmessage=new DefaultMessage("res&&push",
+                        new Object[]{this._predstack,new ActorTask(layer, new Object[]{_q3,index,id}, false)});
                 actorManager.send(dmessage, curactor, actor);
             }else{
                 Actor actor = actors.get(name);
                 State currQ=(State) _q3.copy();
                 currQ.setLevel(layer + 1);
-                dmessage=new DefaultMessage("push",new ActorTask(layer,currQ,false));
+                currQ.list = new ArrayList();
+                dmessage=new DefaultMessage("push",new ActorTask(layer,new Object[]{currQ,index,id},false));
                 actorManager.send(dmessage,curactor,actor);
             }
         }
@@ -68,13 +71,11 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 State state=((State) (((ActorTask) ss.peek()).getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
-                    state.endElementDo(index,id,atask,curactor);
+                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    actorManager.send(dmessage, curactor, curactor);
+                    return false;
                 }
             }
-//            else {
-//                actors.remove(curactor);
-//                actorManager.detachActor(curactor);
-//            }
         }
         return true;
     }
@@ -124,7 +125,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
         }else{     //false
             if(atask.isInSelf()){
-                list.remove(list.size()-1);
+                list.remove(list.size() - 1);
             }else
                 list.clear();
         }

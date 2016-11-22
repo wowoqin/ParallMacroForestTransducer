@@ -2,6 +2,7 @@ package com.rules;
 
 import com.XPath.PathParser.ASTPreds;
 import com.actormodel.TaskActor;
+import com.ibm.actor.DefaultMessage;
 import com.taskmodel.ActorTask;
 import com.taskmodel.WaitTask;
 
@@ -37,7 +38,7 @@ public class StateT2_3 extends StateT2{
                 waitState.getList().add(list.get(0));
                 curactor.popFunction();
                 //(id,T2-3,isInself) 换为 （id,qw,isInself）
-                curactor.pushTaskDo(new ActorTask(idd, waitState, isInSelf));
+                curactor.getMyStack().push(new ActorTask(idd, waitState, isInSelf));
                 //设置 T3-3.q'''检查成功-->
                 curactor.sendPredsResult(new ActorTask(idd, true, true));//确定是给自己的
                 /*在谓词全部满足或者q''不满足弹栈的时候--> 栈顶为(id,qw,isInSelf)：
@@ -79,7 +80,9 @@ public class StateT2_3 extends StateT2{
                 State state=((State) (((ActorTask) ss.peek()).getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
-                    state.endElementDo(index,id,atask,curactor);
+                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    actorManager.send(dmessage, curactor, curactor);
+                    return false;
                 }
             }
         }

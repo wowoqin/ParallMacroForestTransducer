@@ -48,7 +48,7 @@ public class StateT1_6 extends StateT1{
             addWTask(new WaitTask(layer, null, null));
             _q3.setLevel(layer + 1);
 
-            curactor.pushTaskDo(new ActorTask(layer, _q3, true));
+            curactor.pushTaskDo(new ActorTask(layer, new Object[]{_q3,index,id}, true));
             String name=((Integer)this.hashCode()).toString().concat("T1-6.paActor");
             Actor actor;
             ActorTask aatask;
@@ -57,7 +57,8 @@ public class StateT1_6 extends StateT1{
                 System.out.println("pathactor == null，创建了 q1 再压栈");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q1.setLevel(layer + 1);
-                dmessage=new DefaultMessage("res&&push",new Object[]{this._pathstack,new ActorTask(layer, _q1, false)});
+                dmessage=new DefaultMessage("res&&push",
+                        new Object[]{this._pathstack,new ActorTask(layer, new Object[]{_q1}, false)});
                 actorManager.send(dmessage, curactor, actor);
             }else{  // 若path  actor 已经创建了,则发送 q'' 给 paActor即可
                 System.out.println("pathactor 存在，q1直接压栈" );
@@ -65,9 +66,9 @@ public class StateT1_6 extends StateT1{
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
+                aatask = new ActorTask(layer,new Object[]{currQ},false);
                 if(!_pathstack.isEmpty()){      //上一个的path已经检查成功弹栈了
                     System.out.println("，pathstack 不为空，当前q1会add到curractor的缓存list中去");
-                    aatask = new ActorTask(layer,currQ,false);
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
                         System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
@@ -81,7 +82,7 @@ public class StateT1_6 extends StateT1{
                     return true;
                 }else{
                     System.out.println("，pathstack为空-即上一个q1已经检查成功弹栈了，当前q1直接压栈");
-                    dmessage = new DefaultMessage("push",new ActorTask(layer, currQ, false));
+                    dmessage = new DefaultMessage("push",new ActorTask(layer, aatask, false));
                     actorManager.send(dmessage, curactor, actor);
                 }
             }

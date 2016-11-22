@@ -38,7 +38,7 @@ public class StateT2_1 extends StateT2 {
                 waitState.list.add(this.list.get(0));
                 //(id,T2-1,isInself) 换为 （id,qw,isInself）
                 curactor.popFunction();
-                curactor.pushTaskDo(new ActorTask(idd, waitState, isInSelf));
+                curactor.getMyStack().push(new ActorTask(idd, waitState, isInSelf));
                 //设置 T3-1.q'''检查成功（发消息而不是直接设置pred：是因为万一q''已经是检查成功的了呢）
                 curactor.sendPredsResult(new ActorTask(idd, true, true));//确定是给自己的--当前栈顶已经是 qw
             }else{      //T2-1

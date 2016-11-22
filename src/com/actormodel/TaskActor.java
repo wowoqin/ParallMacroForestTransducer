@@ -295,27 +295,30 @@ public class TaskActor extends AbstractActor {
 
     //压栈操作
     public void pushTaskDo(ActorTask actorTask) throws CloneNotSupportedException {
+        int id = actorTask.getId();
+        boolean isInSelf = actorTask.isInSelf();
         Object[] obj = ((Object[]) actorTask.getObject());
         State state = (State)obj[0];
         System.out.println(this.getName() + " 进行压栈操作," + state +" 入栈");
 
         if(state instanceof StateT3) {  //T3
-            //(id,[q3,index,arrid],isInself)
-            int id = actorTask.getId();
-            boolean isInSelf = actorTask.isInSelf();
+            //actorTask = (id,[q3,index,arrid],isInself)
+            int index = (Integer)obj[1];
+            int arrid = (Integer)obj[2];
             int level = state.getLevel();// T3 要匹配的层数
-
             State firstPred = ((StateT3) state).get_q2(); // q'''
             State remainPred = ((StateT3) state).get_q3();// q''
             firstPred.setLevel(level);
             remainPred.setLevel(level);
             //push(q''')
-            this.getMyStack().push(new ActorTask(id, firstPred, isInSelf));
+            this.myStack.push(new ActorTask(id, firstPred, isInSelf));
             //在 T3-1.q'''.list 中添加要等待的 wt
             firstPred.getList().add(new WaitTask(id, null, null));
-            Stack stack = ((StateT3) state).get_predstack();
-
+            Stack prstack = ((StateT3) state).get_predstack();
             String name = null;
+            Actor actor;
+            ActorTask aatask;
+
             if (state instanceof StateT3_1)
                 name = ((Integer) state.hashCode()).toString().concat("T3-1.prActor");
             else if (state instanceof StateT3_2)
@@ -326,17 +329,17 @@ public class TaskActor extends AbstractActor {
                 name = ((Integer) state.hashCode()).toString().concat("T3-4.prActor");
             //push(q'')-->继续调用此函数判断压栈
             if (!State.actors.containsKey(name)) {
-                Actor actor = getManager().createAndStartActor(this.getClass(), name);
-                DefaultMessage message = new DefaultMessage("res&&push", new Object[]{stack, new ActorTask(id, new Object[]{remainPred,obj[1],obj[2]}, false)});
+                actor = getManager().createAndStartActor(this.getClass(), name);
+                DefaultMessage message = new DefaultMessage("res&&push", new Object[]{prstack, new ActorTask(id, new Object[]{remainPred,index,arrid}, false)});
                 getManager().send(message, this, actor);
             } else {
-                Actor actor = State.actors.get(name);
+                actor = State.actors.get(name);
                 State currQ = (State) remainPred.copy();
                 currQ.setLevel(level);
                 currQ.setList(new ArrayList());
-                if(!stack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
+                if(!prstack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
                     System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
-                    aatask = new ActorTask(layer,currQ,false);
+                    aatask = new ActorTask(level,new Object[]{currQ,index,arrid},false);
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
                         System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
@@ -344,21 +347,29 @@ public class TaskActor extends AbstractActor {
                         getManager().send(message, this, actor);
                     }else {
                         System.out.println("当前数据块还没结束，" + name + " 的Index：index");
-                        DefaultMessage message = new DefaultMessage("needModifyIndex", new Object[]{obj[1],obj[2],aatask});
+                        DefaultMessage message = new DefaultMessage("needModifyIndex", new Object[]{index,++arrid,aatask});
                         getManager().send(message, this, actor);
                     }
                     return;
                 }else{
                     System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
-                    DefaultMessage message = new DefaultMessage("push", new ActorTask(id, new Object[]{currQ,obj[1],obj[2]}, false));
+                    DefaultMessage message = new DefaultMessage("push", new ActorTask(id, new Object[]{currQ,index,arrid}, false));
                     getManager().send(message, this, actor);
                 }
             }
-            //给数据源
 
+            //向 actor 发送数据块的 index + id
+            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+            if(arrid == 1){
+                DefaultMessage message = new DefaultMessage("modifyIndex", new Object[]{++index ,0});
+                getManager().send(message, this, actor);
+            }else {
+                DefaultMessage message = new DefaultMessage("modifyIndex", new Object[]{index, ++arrid});
+                getManager().send(message, this, actor);
+            }
         }else{
-            //(id,q,isInself)
-            this.getMyStack().push(actorTask);
+            //(id,[q],isInself)
+            myStack.push(new ActorTask(id,state,isInSelf));
         }
     }
 

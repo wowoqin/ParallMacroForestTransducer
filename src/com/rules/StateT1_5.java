@@ -48,7 +48,7 @@ public class StateT1_5 extends StateT1{
             list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, true, null));
             _q1.setLevel(layer + 1);
-            curactor.pushTaskDo(new ActorTask(layer,_q1,true));
+            curactor.pushTaskDo(new ActorTask(layer,new Object[]{_q1},true));
         }
         return true;
     }

@@ -32,7 +32,7 @@ public class StateT2_2 extends StateT2 {
         if((layer==getLevel()) && (tag.equals(_test))){     // T2-2 的test匹配
             addWTask(new WaitTask(layer, null, true));
             _q3.setLevel(layer + 1);
-            curactor.pushTaskDo(new ActorTask(layer, _q3, true));   //确定是给自己的
+            curactor.pushTaskDo(new ActorTask(layer, new Object[]{_q3,index,id}, true));   //确定是给自己的
         }
         return true;
     }

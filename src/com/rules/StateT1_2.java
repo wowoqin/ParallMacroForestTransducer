@@ -33,7 +33,7 @@ public class StateT1_2 extends StateT1 {
             System.out.println("T1-2匹配到开始标签，压栈 & add(wt)");
             addWTask(new WaitTask(layer, null, tag));
             _q3.setLevel(layer + 1);
-            curactor.pushTaskDo(new ActorTask(layer, _q3, true));
+            curactor.pushTaskDo(new ActorTask(layer, new Object[]{_q3,index,id}, true));
         }
         return true;
     }

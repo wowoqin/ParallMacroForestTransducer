@@ -61,7 +61,8 @@ public class StateT1_8 extends StateT1 {
                 System.out.println("谓词actor == null,先创建 prActor");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
-                dmessage = new DefaultMessage("res&&push", new Object[]{this._predstack, new ActorTask(layer, _q3, false)});
+                dmessage = new DefaultMessage("res&&push",
+                        new Object[]{this._predstack, new ActorTask(layer, new Object[]{_q3,index,id}, false)});
                 actorManager.send(dmessage, curactor, actor);
             } else {  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
                 System.out.println("predactor != null，q3直接压栈");
@@ -69,9 +70,9 @@ public class StateT1_8 extends StateT1 {
                 State currQ = (State) _q3.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
+                aatask = new ActorTask(layer,new Object[]{currQ,index,id},false);
                 if(!_predstack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
                     System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
-                    aatask = new ActorTask(layer,currQ,false);
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
                         System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
@@ -85,7 +86,7 @@ public class StateT1_8 extends StateT1 {
                     return true;
                 }else{
                     System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
-                    dmessage = new DefaultMessage("push",new ActorTask(layer, currQ, false));
+                    dmessage = new DefaultMessage("push",new ActorTask(layer, aatask, false));
                     actorManager.send(dmessage, curactor, actor);
                 }
             }
@@ -105,7 +106,8 @@ public class StateT1_8 extends StateT1 {
                 System.out.println("pathactor == null，先创建 paActor");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q1.setLevel(layer + 1);
-                dmessage=new DefaultMessage("res&&push",new Object[]{this._pathstack,new ActorTask(layer, _q1, false)});
+                dmessage=new DefaultMessage("res&&push",
+                        new Object[]{this._pathstack,new ActorTask(layer, new Object[]{_q1}, false)});
                 actorManager.send(dmessage, curactor, actor);
             } else{  // 若path  actor 已经创建了,则发送 q'' 给 paActor即可
                 System.out.println("pathactor != null，q1直接压栈");
@@ -113,9 +115,9 @@ public class StateT1_8 extends StateT1 {
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
+                aatask = new ActorTask(layer,new Object[]{currQ},false);
                 if(!_pathstack.isEmpty()){      //上一个的path已经检查成功弹栈了
                     System.out.println("pathstack 不为空，当前q1会add到curractor的缓存list中去");
-                    aatask = new ActorTask(layer,currQ,false);
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
                         System.out.println("当前数据块处理结束，" + name + " 的Index：++index");
@@ -129,7 +131,7 @@ public class StateT1_8 extends StateT1 {
                     return true;
                 }else{
                     System.out.println("，pathstack为空-即上一个q1已经检查成功弹栈了，当前q1直接压栈");
-                    dmessage = new DefaultMessage("push",new ActorTask(layer, currQ, false));
+                    dmessage = new DefaultMessage("push",new ActorTask(layer, aatask, false));
                     actorManager.send(dmessage, curactor, actor);
                 }
             }

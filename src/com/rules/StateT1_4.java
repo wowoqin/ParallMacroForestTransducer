@@ -44,7 +44,8 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                 System.out.println("，T1-4.prActor == null，创建");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
-                dmessage = new DefaultMessage("res&&push",new Object[]{this._predstack,new ActorTask(layer, _q3, false)});
+                dmessage = new DefaultMessage("res&&push",
+                        new Object[]{this._predstack,new ActorTask(layer, new Object[]{_q3,index,id}, false)});
                 actorManager.send(dmessage, curactor, actor);
             }else{  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
                 System.out.print("，T1-4.prActor 已经存在");
@@ -52,9 +53,9 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                 State currQ = (State) _q3.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
+                aatask = new ActorTask(layer,new Object[]{currQ,index,id},false);
                 if(!_predstack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
                     System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
-                    aatask = new ActorTask(layer,currQ,false);
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
                         System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
@@ -62,13 +63,13 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                         actorManager.send(dmessage, curactor, actor);
                     }else {
                         System.out.println("当前数据块还没结束，" + name + " 的Index：index");
-                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask});
+                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{index,++id,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }
                     return true;
                 }else{
                     System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
-                    dmessage = new DefaultMessage("push",new ActorTask(layer, currQ, false));
+                    dmessage = new DefaultMessage("push",new ActorTask(layer, aatask, false));
                     actorManager.send(dmessage, curactor, actor);
                 }
             }
@@ -76,7 +77,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
             //向 actor 发送数据块的 index + id
             System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
             if(id == 1){
-                dmessage = new DefaultMessage("modifyIndex", new Object[]{++index,0});
+                dmessage = new DefaultMessage("modifyIndex", new Object[]{++index, 0});
                 actorManager.send(dmessage, curactor, actor);
             }else {
                 dmessage = new DefaultMessage("modifyIndex", new Object[]{index, ++id});

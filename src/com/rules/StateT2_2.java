@@ -81,9 +81,9 @@ public class StateT2_2 extends StateT2 {
         Boolean pred = (Boolean)atask.getObject();
         WaitTask wt = (WaitTask)list.get(list.size()-1);//最后一个元素
         if(pred){    //true
-            if(atask.isInSelf()){  //来自自己
+            if(atask.isInSelf()){    //来自自己
                 wt.setPredR(pred);
-            }else{   //来自T3.preds'
+            }else{                   //来自T3.preds'
                 wt = (WaitTask)list.get(0);
                 wt.setPathR(pred);
             }
@@ -97,15 +97,15 @@ public class StateT2_2 extends StateT2 {
 
                 if(wt.isPredsSatisified()) {   //(id,true,true)--上传
                     if(list.size() > 1){
-                        curractor.sendPredsResult(new ActorTask(idd, true, true));   //给自己
+                        curractor.sendPredsResult(new ActorTask(idd, true, true));   //给自己--检查成功的是T2-2
                     } else {
                         curractor.popFunction(); //弹栈
-                        curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //给上级
+                        curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //给上级--
                     }
                 } else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-2,isInself)换为（id,qw,isInself）
                     curractor.popFunction(); //弹栈
                     WaitState waitState = new WaitState();
-                    waitState.setLevel(((State) atask.getObject()).getLevel());
+                    waitState.setLevel(((State) task.getObject()).getLevel());
                     waitState.list.add(wt);
                     curractor.getMyStack().push(new ActorTask(idd, waitState, isInSelf));
                 }

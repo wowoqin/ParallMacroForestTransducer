@@ -54,7 +54,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
                 aatask = new ActorTask(layer,new Object[]{currQ,index,id},false);
-                if(!_predstack.isEmpty()){      //上一个的谓词已经检查成功弹栈了
+                if(!actors.containsKey(name)){      //上一个的谓词已经检查成功弹栈了
                     System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
                     //向 actor 发送数据块的 index + id
                     if(id == 1){

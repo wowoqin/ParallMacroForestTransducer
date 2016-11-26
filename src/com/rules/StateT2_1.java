@@ -87,6 +87,7 @@ public class StateT2_1 extends StateT2 {
     * */
     @Override
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
+        //atask=(id,true/false,isInself)
         Boolean pred = (Boolean)atask.getObject();
         WaitTask wt = (WaitTask)list.get(0);    //q==T3-1时，只有一个wt(id,null,null)
         if(pred){    //true
@@ -108,7 +109,7 @@ public class StateT2_1 extends StateT2 {
                 } else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-1,isInself)换为（id,qw,isInself）
                     curractor.popFunction(); //弹栈
                     WaitState waitState = new WaitState();
-                    waitState.setLevel(((State) atask.getObject()).getLevel());
+                    waitState.setLevel(((State) task.getObject()).getLevel());
                     waitState.list.add(wt);
                     curractor.getMyStack().push(new ActorTask(idd, waitState, isInSelf));
                 }

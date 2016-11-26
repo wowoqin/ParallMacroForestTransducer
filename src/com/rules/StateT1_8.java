@@ -57,8 +57,8 @@ public class StateT1_8 extends StateT1 {
             Actor actor;
             ActorTask aatask;
 
-            if (this._predstack.isEmpty()) {   // 若predstack 为空
-                System.out.println("谓词actor == null,先创建 prActor");
+            if (!actors.containsKey(name)) {   // 若predstack 为空
+                System.out.println("practor == null,先创建 prActor");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
                 dmessage = new DefaultMessage("res&&push",
@@ -102,7 +102,7 @@ public class StateT1_8 extends StateT1 {
             }
 
             name = ((Integer)(this.hashCode()+1)).toString().concat("T1-8.paActor");
-            if(this._pathstack.isEmpty()){  // 若pathActor 还没有创建 --> _pathstack 一定为空
+            if(!actors.containsKey(name)){  // 若pathActor 还没有创建 --> _pathstack 一定为空
                 System.out.println("pathactor == null，先创建 paActor");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q1.setLevel(layer + 1);
@@ -111,7 +111,7 @@ public class StateT1_8 extends StateT1 {
                 actorManager.send(dmessage, curactor, actor);
             } else{  // 若path  actor 已经创建了,则发送 q'' 给 paActor即可
                 System.out.print("pathactor != null，");
-                actor=actors.get(name);
+                actor = actors.get(name);
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
@@ -191,7 +191,6 @@ public class StateT1_8 extends StateT1 {
                     if(!llist.isEmpty()){
                         WaitTask wtask = llist.get(0);
                         if(!wtask.hasReturned()){
-                            System.out.println("T1-8的path/pred结果还未处理");
                             //需要当前方法return，去处理下一个消息--即谓词返回结果，并保存当前（index，id）
                             System.out.println("T1-8的path/pred还未返回结果，等待path/pred的结果处理了再继续扫描！");
                             while(curactor.getMessageCount()==0){

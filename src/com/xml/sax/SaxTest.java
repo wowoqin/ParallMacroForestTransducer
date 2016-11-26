@@ -17,15 +17,8 @@ public class SaxTest {
 //        Thread.currentThread().setPriority(1);
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser parser = factory.newSAXParser();
-        //File f = new File("test3.xml");
-        //MySaxParser dh = new MySaxParser("/a//d[//c[/d]][/a]");
-        //MySaxParser dh = new MySaxParser("/a/c[/b][/d]");
-        //MySaxParser dh = new MySaxParser("/a/c/d[/a]");
-        File f = new File("test8.xml");
-        MySaxParser dh = new MySaxParser("/a[/c][/b]");
-        //MySaxParser dh = new MySaxParser("//a[/b]//d");
-        //MySaxParser dh = new MySaxParser("/a[/b[/c]]/e[/f]");
-        //MySaxParser dh = new MySaxParser("//a[/d]/c[/b[//g]]");
+        File f = new File("C:\\Users\\qin\\Desktop\\test\\sample1.xml");
+        MySaxParser dh = new MySaxParser("//text");
         parser.parse(f, dh);
 
         try {

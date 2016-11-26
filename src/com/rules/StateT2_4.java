@@ -36,20 +36,47 @@ public class StateT2_4 extends StateT2 implements Cloneable{
         if ((layer >= getLevel()) && (tag.equals(_test))) {
             // 等 q' 的结果
             addWTask(new WaitTask(layer, null,true));
-            String name=((Integer)this.hashCode()).toString().concat("T2-4.prActor");
-            if(this._predstack.isEmpty()){// 若 prActor还没有创建 ，predstack 一定为空
-                Actor actor=actorManager.createAndStartActor(TaskActor.class, name);
+            String name = ((Integer)this.hashCode()).toString().concat("T2-4.prActor");
+            Actor actor;
+            if(!actors.containsKey(name)){// 若 prActor还没有创建 ，predstack 一定为空
+                actor=actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
                 dmessage=new DefaultMessage("res&&push",
                         new Object[]{this._predstack,new ActorTask(layer, new Object[]{_q3,index,id}, false)});
                 actorManager.send(dmessage, curactor, actor);
             }else{
-                Actor actor = actors.get(name);
+                actor = actors.get(name);
                 State currQ=(State) _q3.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
-                dmessage=new DefaultMessage("push",new ActorTask(layer,new Object[]{currQ,index,id},false));
-                actorManager.send(dmessage,curactor,actor);
+                ActorTask aatask = new ActorTask(layer,new Object[]{currQ,index,id},false);
+                if(!actors.containsKey(name)){      //上一个的谓词已经检查成功弹栈了
+                    System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
+                    //向 actor 发送数据块的 index + id
+                    if(id == 1){
+                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
+                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
+                        actorManager.send(dmessage, curactor, actor);
+                    }else {
+                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{index,++id,aatask});
+                        actorManager.send(dmessage, curactor, actor);
+                    }
+                    return true;
+                }else{
+                    System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
+                    dmessage = new DefaultMessage("push",new ActorTask(layer, aatask, false));
+                    actorManager.send(dmessage, curactor, actor);
+                }
+            }
+            //向 actor 发送数据块的 index + id
+            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+            if(id == 1){
+                dmessage = new DefaultMessage("modifyIndex", new Object[]{++index, 0});
+                actorManager.send(dmessage, curactor, actor);
+            }else {
+                dmessage = new DefaultMessage("modifyIndex", new Object[]{index, ++id});
+                actorManager.send(dmessage, curactor, actor);
             }
         }
         return true;
@@ -58,7 +85,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
     @Override
     public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
         if (atask.getId() == getLevel() - 1) {
-            Stack ss=curactor.getMyStack();
+            Stack ss = curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());//(id,T2-4,isInself)
             int idd = task.getId();
             boolean isInSelf = task.isInSelf();
@@ -99,7 +126,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
             }
 
             {
-                Stack ss=curractor.getMyStack();
+                Stack ss = curractor.getMyStack();
                 ActorTask task = ((ActorTask) ss.peek());//(id,T2-4,isInself)
                 int idd = task.getId();
                 boolean isInSelf = task.isInSelf();
@@ -117,7 +144,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 } else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-4,isInself)换为（id,qw,isInself）
                     curractor.popFunction(); //弹栈
                     WaitState waitState = new WaitState();
-                    waitState.setLevel(((State) atask.getObject()).getLevel());
+                    waitState.setLevel(((State) task.getObject()).getLevel());
                     waitState.list.add(wt);
                     curractor.getMyStack().push(new ActorTask(idd, waitState, isInSelf));
                 }

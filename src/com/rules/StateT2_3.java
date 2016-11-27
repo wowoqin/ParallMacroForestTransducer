@@ -74,10 +74,36 @@ public class StateT2_3 extends StateT2{
             ActorTask task = ((ActorTask) ss.peek());//(id,T2-3,isInself)
             int idd = atask.getId();
             boolean isInSelf = task.isInSelf();
-            //pop(id,T2-3,isInself)
-            curactor.popFunction();
-            //发消息（id,false,isInself）
-            curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
+
+            if(!list.isEmpty()){
+                System.out.println("T3-3");
+                WaitTask wtask = (WaitTask)list.get(0);
+                if(!wtask.hasReturned()){
+                    if(curactor.getMessageCount() > 0){
+                        System.out.print("T3-3.preds' 已有返回结果，还未处理,");
+                    }else{
+                        System.out.print("T3-3.preds' 没返回结果等啊等。。。");
+                        do{
+                            try {
+                                Thread.sleep(1);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        } while(curactor.getMessageCount() == 0);
+                    }
+
+                    System.out.println("T2-3.preds'返回结果了--先去处理 predR' ");
+                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    actorManager.send(dmessage,curactor,curactor);
+                    return false; //中断此次处理--先处理返回的结果
+                }
+            }else{
+                System.out.println("T3-3.preds' || T2-3检查失败");
+                //pop(id,T2-3,isInself)
+                curactor.popFunction();
+                //发消息（id,false,isInself）
+                curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
+            }
             //当前栈不为空，栈顶进行endElementDo 操作（输出（T1-2或者T1-6）
             if (!ss.isEmpty()) {
                 State state=((State) (((ActorTask) ss.peek()).getObject()));
@@ -103,6 +129,8 @@ public class StateT2_3 extends StateT2{
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
         Boolean pred = (Boolean)atask.getObject();
         WaitTask wt = (WaitTask)list.get(0);    //q==T3-3时，只有一个wt(id,null,null)
+        Stack ss = curractor.getMyStack();
+
         if(pred){    //true
             if(atask.isInSelf()){  //来自自己--T2-3检查成功
                 System.out.println("来自自己--T2-3检查成功");
@@ -113,7 +141,6 @@ public class StateT2_3 extends StateT2{
             }
             //设置完检查当前wt的表现形式
             {
-                Stack ss = curractor.getMyStack();
                 ActorTask task = ((ActorTask) ss.peek());//(id,T2-2,isInself)
                 int idd = task.getId();
                 boolean isInSelf = task.isInSelf();
@@ -134,10 +161,8 @@ public class StateT2_3 extends StateT2{
                 //(id,null,true)--不做任何处理
             }
         }else{     //false
-            if(atask.isInSelf()){
-                list.remove(list.size()-1);
-            }else
-                list.clear();
+            //无论是T2-3还是T3-3.preds'检查失败，都是遇到了上层结束标签才会返回false--直接pop&&返回false
+            list.clear();
         }
     }
 }

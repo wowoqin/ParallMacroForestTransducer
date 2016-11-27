@@ -148,7 +148,7 @@ public class TaskActor extends AbstractActor {
             Object[] data = (Object[]) message.getData();
             int index = (Integer) data[0];
             int id = (Integer) data[1];
-//            System.out.print(this.getName() + ".needModifyIndex操作，");
+            System.out.print(this.getName() + ".needModifyIndex操作，");
             if(myStack.isEmpty()){
                 System.out.println("needModifyIndex中当前栈为空(pred检查成功直接已经弹栈的)，直接压栈&直接去请求数据块");
                 try {
@@ -178,7 +178,7 @@ public class TaskActor extends AbstractActor {
                 }else{
                     //第一次添加的时候不可能当前actor就处理到了要修改的标签处，
                     // 肯定currIndex < waitIndex ||(currIndex < waitIndex && currId < waitId)
-                    System.out.println(" 第一次在mylist中添加");
+                    System.out.println(this.getName()+" 第一次在mylist中添加");
                     mylist.add(data);
                     setWaitIndex(index);
                     setWaitId(id);
@@ -336,13 +336,13 @@ public class TaskActor extends AbstractActor {
             ActorTask aatask;
 
             if (state instanceof StateT3_1)
-                name = ((Integer) state.hashCode()).toString().concat("T3-1.prActor");
+                name = ((Integer) this.hashCode()).toString().concat("T3-1.prActor");
             else if (state instanceof StateT3_2)
-                name = ((Integer) state.hashCode()).toString().concat("T3-2.prActor");
+                name = ((Integer) this.hashCode()).toString().concat("T3-2.prActor");
             else if (state instanceof StateT3_3)
-                name = ((Integer) state.hashCode()).toString().concat("T3-3.prActor");
+                name = ((Integer) this.hashCode()).toString().concat("T3-3.prActor");
             else if (state instanceof StateT3_4)
-                name = ((Integer) state.hashCode()).toString().concat("T3-4.prActor");
+                name = ((Integer) this.hashCode()).toString().concat("T3-4.prActor");
             //push(q'')-->继续调用此函数判断压栈
             if (!State.actors.containsKey(name)) {
                 actor = getManager().createAndStartActor(this.getClass(), name);

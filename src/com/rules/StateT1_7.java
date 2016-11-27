@@ -44,7 +44,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
 //            System.out.print("T1-7.test匹配，add(wt)，");
             list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, true, null));
-            String name = ((Integer)this.hashCode()).toString().concat("T1-7.paActor");
+            String name = ((Integer)curactor.hashCode()).toString().concat("T1-7.paActor");
             Actor actor;
             ActorTask aatask;
 

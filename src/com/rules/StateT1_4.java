@@ -36,7 +36,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
             // 在 list 中添加需要等待匹配的任务模型
             addWTask(new WaitTask(layer, null, tag));
 //            System.out.print("T1-4 开始标签匹配，add(wt),wt.id= "+layer);
-            String name = ((Integer) this.hashCode()).toString().concat("T1-4.prActor");
+            String name = ((Integer) curactor.hashCode()).toString().concat("T1-4.prActor");
             Actor actor;
             ActorTask aatask;
 

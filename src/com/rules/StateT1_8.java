@@ -53,19 +53,19 @@ public class StateT1_8 extends StateT1 {
 //            System.out.print("T1-8.test匹配，add(wt)，");
             list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, null, null));
-            String name = ((Integer)this.hashCode()).toString().concat("T1-8.prActor");
+            String prname = ((Integer)curactor.hashCode()).toString().concat("T1-8.prActor");
             Actor actor;
             ActorTask aatask;
 
-            if (!actors.containsKey(name)) {   // 若predstack 为空
+            if (!actors.containsKey(prname)) {   // 若predstack 为空
                 System.out.println("practor == null,先创建 prActor");
-                actor = actorManager.createAndStartActor(TaskActor.class, name);
+                actor = actorManager.createAndStartActor(TaskActor.class, prname);
                 _q3.setLevel(layer + 1);
                 dmessage = new DefaultMessage("res&&push",
                         new Object[]{this._predstack, new ActorTask(layer, new Object[]{_q3,index,id}, false)});
                 actorManager.send(dmessage, curactor, actor);
                 //向 actor 发送数据块的 index + id
-                System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+                System.out.println(prname + " 直接去cacheactor那里取数据块：++index/index");
                 if(id == 1){
                     dmessage = new DefaultMessage("modifyIndex", new Object[]{index+1,0});
                     actorManager.send(dmessage, curactor, actor);
@@ -75,7 +75,7 @@ public class StateT1_8 extends StateT1 {
                 }
             } else {  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
                 System.out.print("predactor != null，");
-                actor = actors.get(name);
+                actor = actors.get(prname);
                 State currQ = (State) _q3.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
@@ -84,11 +84,11 @@ public class StateT1_8 extends StateT1 {
                     System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
-                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
+                        System.out.println(" 当前数据块处理结束，" + prname + " 的Index：++index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{index+1,0,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }else {
-                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+                        System.out.println("当前数据块还没结束，" + prname + " 的Index：index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, id+1,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }
@@ -97,7 +97,7 @@ public class StateT1_8 extends StateT1 {
                     dmessage = new DefaultMessage("push",aatask);
                     actorManager.send(dmessage, curactor, actor);
                     //向 actor 发送数据块的 index + id
-                    System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+                    System.out.println(prname + " 直接去cacheactor那里取数据块：++index/index");
                     if(id == 1){
                         dmessage = new DefaultMessage("modifyIndex", new Object[]{index+1,0});
                         actorManager.send(dmessage, curactor, actor);
@@ -108,19 +108,17 @@ public class StateT1_8 extends StateT1 {
                 }
             }
 
-
-
-            name = ((Integer)(this.hashCode()+1)).toString().concat("T1-8.paActor");
-            if(!actors.containsKey(name)){  // 若pathActor 还没有创建 --> _pathstack 一定为空
+            String paname = ((Integer)(curactor.hashCode()+1)).toString().concat("T1-8.paActor");
+            if(!actors.containsKey(paname)){  // 若pathActor 还没有创建 --> _pathstack 一定为空
                 System.out.println("pathactor == null，先创建 paActor");
-                actor = actorManager.createAndStartActor(TaskActor.class, name);
+                actor = actorManager.createAndStartActor(TaskActor.class, paname);
                 _q1.setLevel(layer + 1);
                 dmessage=new DefaultMessage("res&&push",
                         new Object[]{this._pathstack,new ActorTask(layer, new Object[]{_q1}, false)});
                 actorManager.send(dmessage, curactor, actor);
             } else{  // 若path  actor 已经创建了,则发送 q'' 给 paActor即可
                 System.out.print("pathactor != null，");
-                actor = actors.get(name);
+                actor = actors.get(paname);
                 State currQ=(State)_q1.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
@@ -129,11 +127,11 @@ public class StateT1_8 extends StateT1 {
                     System.out.println("pathstack 不为空，当前q1会add到curractor的缓存list中去");
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
-                        System.out.println("当前数据块处理结束，" + name + " 的Index：++index");
+                        System.out.println("当前数据块处理结束，" + paname + " 的Index：++index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }else {
-                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+                        System.out.println("当前数据块还没结束，" + paname + " 的Index：index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }
@@ -146,7 +144,7 @@ public class StateT1_8 extends StateT1 {
             }
 
             //向 actor 发送数据块的 index + id
-            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+            System.out.println(paname + " 直接去cacheactor那里取数据块：++index/index");
             if(id == 1){
                 dmessage = new DefaultMessage("modifyIndex", new Object[]{++index,0});
                 actorManager.send(dmessage, curactor, actor);

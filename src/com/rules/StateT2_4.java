@@ -35,42 +35,45 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
         if ((layer >= getLevel()) && (tag.equals(_test))) {
             // 等 q' 的结果
-            addWTask(new WaitTask(layer, null,true));
-            String name = ((Integer)this.hashCode()).toString().concat("T2-4.prActor");
+            System.out.print("T2-4.test匹配，");
+            addWTask(new WaitTask(layer, null, true));
+            String name = ((Integer)curactor.hashCode()).toString().concat("T2-4.prActor");
             Actor actor;
             if(!actors.containsKey(name)){// 若 prActor还没有创建 ，predstack 一定为空
+                System.out.println("T2-4.prActor==null，创建先");
                 actor=actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
                 dmessage=new DefaultMessage("res&&push",
                         new Object[]{this._predstack,new ActorTask(layer, new Object[]{_q3,index,id}, false)});
                 actorManager.send(dmessage, curactor, actor);
             }else{
+                System.out.print("T2-4.prActor！=null，");
                 actor = actors.get(name);
                 State currQ=(State) _q3.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
                 ActorTask aatask = new ActorTask(layer,new Object[]{currQ,index,id},false);
                 if(!actors.containsKey(name)){      //上一个的谓词已经检查成功弹栈了
-//                    System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
+                    System.out.println("，但是T2-4.predstack 不为空，当前q3会add到curractor的缓存list中去");
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
-//                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
+                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }else {
-//                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{index,++id,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }
                     return true;
                 }else{
-//                    System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
+                    System.out.println("，但是T2-4.predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
                     dmessage = new DefaultMessage("push",aatask);
                     actorManager.send(dmessage, curactor, actor);
                 }
             }
             //向 actor 发送数据块的 index + id
-//            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
             if(id == 1){
                 dmessage = new DefaultMessage("modifyIndex", new Object[]{++index, 0});
                 actorManager.send(dmessage, curactor, actor);
@@ -84,15 +87,64 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
     @Override
     public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor) {
-        if (atask.getId() == getLevel() - 1) {
+        if(atask.getObject().toString().equals(_test) && !list.isEmpty()){
+            System.out.println("T2-4遇到自己的结束标签，需要检查preds是否返回结果");
+            WaitTask wtask = (WaitTask)list.get(list.size()-1);
+            if(!wtask.hasReturned()){
+                if(curactor.getMessageCount() > 0){
+                    System.out.print("T2-4谓词已有返回结果，还未处理,");
+                }else{
+                    System.out.println("T2-4谓词还没返回结果||返回结果还未处理,等啊等。。。");
+                    do{
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } while(curactor.getMessageCount() == 0);
+                }
+
+                System.out.println("T2-4谓词返回结果了--去处理 predR");
+//                dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+//                actorManager.send(dmessage,curactor,curactor);
+//                return false; //中断此次处理--先处理返回的结果
+            }
+        }else if (atask.getId() == getLevel() - 1) {
+            System.out.print("T2-4遇到上层结束标签，");
             Stack ss = curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());//(id,T2-4,isInself)
             int idd = task.getId();
             boolean isInSelf = task.isInSelf();
-            //pop(T2-4)
-            curactor.popFunction();
-            //发消息（id,false,isInself）
-            curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
+
+            if(!list.isEmpty()){
+                System.out.print("是个T3-4，看T3-4.preds'返回结果没，");
+                WaitTask wtask = (WaitTask)list.get(0);
+                if(!wtask.hasReturned()){
+                    if(curactor.getMessageCount() > 0){
+                        System.out.print("T2-4谓词已有返回结果，还未处理,");
+                    }else{
+                        System.out.println("T2-4谓词还没返回结果||返回结果还未处理,等啊等。。。");
+                        do{
+                            try {
+                                Thread.sleep(1);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        } while(curactor.getMessageCount() == 0);
+                    }
+
+                    System.out.println("T2-4谓词返回结果了--去处理 predR");
+                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    actorManager.send(dmessage,curactor,curactor);
+                    return false; //中断此次处理--先处理返回的结果
+                }
+            }else{
+                System.out.println("T3-4.preds' || T2-4检查失败，pop & 返回false");
+                //pop(T2-4)
+                curactor.popFunction();
+                //发消息（id,false,isInself）
+                curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
+            }
             //当前栈不为空，栈顶进行endElementDo 操作（输出（T1-2或者T1-6）/弹栈（相同结束标签的waitState）等）
             if (!ss.isEmpty()) {
                 State state=((State) (((ActorTask) ss.peek()).getObject()));
@@ -133,12 +185,15 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 int idd = task.getId();
                 boolean isInSelf = task.isInSelf();
 
-                if(wt.isPredsSatisified()) { //(id,true,true)--上传
-                    if(list.size() > 1) {  //原来是T3-1，现在只有T2-4 检查成功
+                if(wt.isPredsSatisified()) {
+                    //(id,true,true)--上传
+                    if(list.size() > 1 && !((WaitTask)list.get(0)).isPathRTrue()) {  //原来是T3-4，现在只有T2-4 检查成功
                         curractor.sendPredsResult(new ActorTask(idd, true, true));        //给自己
+                        for(int i = 1;i<list.size();i++)
+                            list.remove(i);
                     } else {
-                        curractor.popFunction(); //弹栈
-                        curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //给上级
+                        curractor.popFunction();   //弹栈
+                        curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //上传
                         if(!ss.isEmpty() && ((ActorTask) ss.peek()).getObject() instanceof StateT2_4){
                             curractor.processSameADPred();
                         }
@@ -154,9 +209,12 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
         }else{     //false
             if(atask.isInSelf()){
+                System.out.println(this + " predR = false,删除list.size() - 1");
                 list.remove(list.size() - 1);
-            }else
+            }else{
+                System.out.println(this + " predR = false,清空list");
                 list.clear();
+            }
         }
     }
 }

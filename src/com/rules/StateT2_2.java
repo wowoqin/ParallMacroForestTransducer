@@ -66,6 +66,8 @@ public class StateT2_2 extends StateT2 {
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }
+            }else if(!curactor.getMylist().isEmpty()){
+                curactor.processEmStackANDNoEmMylist();
             }
         }
         return true;

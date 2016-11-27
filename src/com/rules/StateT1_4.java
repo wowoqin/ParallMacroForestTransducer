@@ -35,7 +35,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
         if ((layer >= getLevel()) && (tag.equals(_test))) {
             // 在 list 中添加需要等待匹配的任务模型
             addWTask(new WaitTask(layer, null, tag));
-            System.out.print("T1-4 开始标签匹配，add(wt),wt.id= "+layer);
+//            System.out.print("T1-4 开始标签匹配，add(wt),wt.id= "+layer);
             String name = ((Integer) this.hashCode()).toString().concat("T1-4.prActor");
             Actor actor;
             ActorTask aatask;
@@ -69,13 +69,13 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                     return true;
                 }else{
                     System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
-                    dmessage = new DefaultMessage("push",new ActorTask(layer, aatask, false));
+                    dmessage = new DefaultMessage("push",aatask);
                     actorManager.send(dmessage, curactor, actor);
                 }
             }
 
             //向 actor 发送数据块的 index + id
-            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+//            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
             if(id == 1){
                 dmessage = new DefaultMessage("modifyIndex", new Object[]{++index, 0});
                 actorManager.send(dmessage, curactor, actor);

@@ -33,6 +33,7 @@ public class StateT2_3 extends StateT2{
             boolean isInSelf = task.isInSelf();
 
             if(!list.isEmpty()){    //T3-3 && T3-3.q'''检查成功
+                System.out.println("T3-3.q'''检查成功,==>(id,T2-3,isInself)换为（id,qw,isInself）");
                 WaitState waitState = new WaitState();
                 waitState.setLevel(getLevel());
                 waitState.getList().add(list.get(0));
@@ -56,6 +57,8 @@ public class StateT2_3 extends StateT2{
                     if((state instanceof StateT2_3) && !isInSelf){   // T2-3 作为 AD 轴test的谓词
                         curactor.processSameADPred();
                     }
+                }else if(!curactor.getMylist().isEmpty()){
+                    curactor.processEmStackANDNoEmMylist();
                 }
             }
         }
@@ -84,14 +87,16 @@ public class StateT2_3 extends StateT2{
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }
+            }else if(!curactor.getMylist().isEmpty()){
+                curactor.processEmStackANDNoEmMylist();
             }
         }
         return true;
     }
 
     /*
-    * 收到谓词的返回结果：证明原来是个T3-1--等待
-    * 找到T2-1.list的中最后一个元素，设置
+    * 收到谓词的返回结果：证明原来是个T3-3--等待
+    * 找到T2-3.list的中最后一个元素，设置
     * --若当前谓词满足了，还应该向上传递！！！
     * */
     @Override
@@ -100,8 +105,10 @@ public class StateT2_3 extends StateT2{
         WaitTask wt = (WaitTask)list.get(0);    //q==T3-3时，只有一个wt(id,null,null)
         if(pred){    //true
             if(atask.isInSelf()){  //来自自己--T2-3检查成功
+                System.out.println("来自自己--T2-3检查成功");
                 wt.setPredR(pred);
             }else{   //来自T3.preds'
+                System.out.println("来自T3.preds' ");
                 wt.setPathR(pred);
             }
             //设置完检查当前wt的表现形式
@@ -117,8 +124,7 @@ public class StateT2_3 extends StateT2{
                     if(!ss.isEmpty() && ((ActorTask) ss.peek()).getObject() instanceof StateT2_3){
                         curractor.processSameADPred();
                     }
-                }
-                else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-1,isInself)换为（id,qw,isInself）
+                }else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-1,isInself)换为（id,qw,isInself）
                     curractor.popFunction(); //弹栈
                     WaitState waitState=new WaitState();
                     waitState.setLevel(((State) task.getObject()).getLevel());

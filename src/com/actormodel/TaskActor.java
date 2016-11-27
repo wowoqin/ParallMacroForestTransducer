@@ -94,11 +94,27 @@ public class TaskActor extends AbstractActor {
     }
     @Override
     public int getMaxMessageCount() {
-        return super.getMaxMessageCount();
+        return 1000000000;
     }
 
     @Override
     protected void runBody() {}
+
+    @Override
+    public void addMessage(DefaultMessage message) {
+        if(message != null) {
+            List var2 = this.messages;
+            synchronized(this.messages) {
+                if(this.messages.size() >= this.getMaxMessageCount()) {
+//                    System.out.println(this.messages.size());
+//                    throw new IllegalStateException("too many messages, cannot add");
+                }
+
+                this.messages.add(message);
+            }
+        }
+
+    }
 
 //        发送的消息--返回的结果（T/F/result）
 //        接收的消息--输入用完--等待
@@ -132,7 +148,7 @@ public class TaskActor extends AbstractActor {
             Object[] data = (Object[]) message.getData();
             int index = (Integer) data[0];
             int id = (Integer) data[1];
-            System.out.print(this.getName() + ".needModifyIndex操作，");
+//            System.out.print(this.getName() + ".needModifyIndex操作，");
             if(myStack.isEmpty()){
                 System.out.println("needModifyIndex中当前栈为空(pred检查成功直接已经弹栈的)，直接压栈&直接去请求数据块");
                 try {
@@ -253,7 +269,7 @@ public class TaskActor extends AbstractActor {
                                 if(!flg)
                                     return;
                                 else if(i==1 && !this.getMyStack().isEmpty()){   //处理完当前数据块，需要指向下一块数据了
-                                    System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
+//                                    System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
                                     DefaultMessage message1 = new DefaultMessage("modifyIndex", new Object[]{++index,0});
                                     this.getManager().send(message1, this, State.actors.get("cacheActor"));
                                 }
@@ -414,7 +430,7 @@ public class TaskActor extends AbstractActor {
     }
 
     public void processSameADPred(){
-        System.out.println(this.getName() +" processSameADPred 操作");
+        System.out.println(this.getName() + " processSameADPred 操作");
         Stack currstack = this.getMyStack();
         while(!currstack.isEmpty()){    //传过去的结果只会对list的最后一个元素做检查--所以id就起到关键性的作用
             ActorTask task = (ActorTask)currstack.peek();
@@ -430,6 +446,25 @@ public class TaskActor extends AbstractActor {
         System.out.println(this.getName() +" processSameADPath 操作");
         DefaultMessage message = new DefaultMessage("append",wt);
         getManager().send(message,this,this.getResActor());
+    }
+
+    public void processEmStackANDNoEmMylist(){
+        System.out.println("当前栈为空&&mylist不为空，mylist.get(0)压栈&去请求数据块");
+        Object[] data = mylist.get(0);
+        try {
+            this.pushTaskDo((ActorTask)data[2]);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+
+        DefaultMessage message1 = new DefaultMessage("modifyIndex",new Object[]{data[0],data[1]});
+        this.getManager().send(message1, this, State.actors.get("cacheActor"));
+
+        if(!this.mylist.isEmpty()){
+            Object[] tuple = mylist.get(0);
+            setWaitIndex((Integer)tuple[0]);
+            setWaitId((Integer)tuple[1]);
+        }
     }
 
     public void output(WaitTask wt){

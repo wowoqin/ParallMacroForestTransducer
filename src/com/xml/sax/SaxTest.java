@@ -14,11 +14,11 @@ import java.io.IOException;
 public class SaxTest {
     public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
         System.out.println(Thread.currentThread().getName()+" 线程开始运行");
-//        Thread.currentThread().setPriority(1);
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser parser = factory.newSAXParser();
-        File f = new File("C:\\Users\\qin\\Desktop\\test\\sample1.xml");
-        MySaxParser dh = new MySaxParser("//text");
+        File f = new File("test8.xml");
+//        File f = new File("C:\\Users\\qin\\Desktop\\test\\sample1.xml");
+        MySaxParser dh = new MySaxParser("//a[//b[/c]]/d");
         parser.parse(f, dh);
 
         try {

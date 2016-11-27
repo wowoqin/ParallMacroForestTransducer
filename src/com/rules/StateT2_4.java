@@ -51,26 +51,26 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 currQ.list = new ArrayList();
                 ActorTask aatask = new ActorTask(layer,new Object[]{currQ,index,id},false);
                 if(!actors.containsKey(name)){      //上一个的谓词已经检查成功弹栈了
-                    System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
+//                    System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
                     //向 actor 发送数据块的 index + id
                     if(id == 1){
-                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
+//                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }else {
-                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
+//                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{index,++id,aatask});
                         actorManager.send(dmessage, curactor, actor);
                     }
                     return true;
                 }else{
-                    System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
-                    dmessage = new DefaultMessage("push",new ActorTask(layer, aatask, false));
+//                    System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
+                    dmessage = new DefaultMessage("push",aatask);
                     actorManager.send(dmessage, curactor, actor);
                 }
             }
             //向 actor 发送数据块的 index + id
-            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
+//            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
             if(id == 1){
                 dmessage = new DefaultMessage("modifyIndex", new Object[]{++index, 0});
                 actorManager.send(dmessage, curactor, actor);
@@ -102,6 +102,8 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }
+            }else if(!curactor.getMylist().isEmpty()){
+                curactor.processEmStackANDNoEmMylist();
             }
         }
         return true;

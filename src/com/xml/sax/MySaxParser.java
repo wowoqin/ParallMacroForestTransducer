@@ -50,7 +50,7 @@ public class MySaxParser<T> extends DefaultHandler {
 
     @Override
     public void startDocument() throws SAXException {
-        System.out.println("----------- Start Document ----------");
+//        System.out.println("----------- Start Document ----------");
         cacheActor = manager.createAndStartActor(CacheActor.class,"cacheActor");
         State.actors.put(cacheActor.getName(),cacheActor);
         layer = 0;
@@ -88,7 +88,7 @@ public class MySaxParser<T> extends DefaultHandler {
     @Override
     public void endDocument() throws SAXException{
         super.endDocument();
-        System.out.println("----------- End  Document ----------");
+//        System.out.println("----------- End  Document ----------");
 
     }
 

@@ -168,7 +168,7 @@ public class TaskActor extends AbstractActor {
             }else{
                 if(!this.mylist.isEmpty()){
                     System.out.println("但当前栈不为空&mylist不为空：直接添加");
-                    Object[] first = mylist.get(0);
+//                    Object[] first = mylist.get(0);
                     if(index < waitIndex || (index == waitIndex && id < waitId)){
                         mylist.add(0,data);   //确保list中第一位是最小的index--/b/c的这种情况
                         setWaitIndex(index);
@@ -213,7 +213,15 @@ public class TaskActor extends AbstractActor {
                     state.appendPathR((Object[]) message.getData());
                 }else if("repred".equals(subject)){                      //T/F
                     System.out.print(this.getName() + " 收到predR，栈顶 ");
-                    state.predMatchFunction((ActorTask)message.getData(),this);
+                    if(state instanceof StateT2_4){
+                        if(message.getSource().getName().contains("T3"))
+                            state.predMatchFunction((ActorTask)message.getData(),this);
+                        else {  //(id,true/false,true)--自身检查成功
+                            ActorTask task = (ActorTask)message.getData();
+                            state.predMatchFunction(new ActorTask(task.getId(),task.getObject(),true),this);
+                        }
+                    }else
+                        state.predMatchFunction((ActorTask)message.getData(),this);
                 }else if("repath".equals(subject)){                //result
                     System.out.print(this.getName() + " 收到pathR，栈顶 ");
                     state.pathMatchFunction((ActorTask)message.getData());
@@ -270,6 +278,14 @@ public class TaskActor extends AbstractActor {
                                     return;
                                 else if(i==1 && !this.getMyStack().isEmpty()){   //处理完当前数据块，需要指向下一块数据了
 //                                    System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
+                                    while(State.actors.get("cacheActor").getMessageCount() == 100){
+                                        try {
+                                            Thread.sleep(1);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
                                     DefaultMessage message1 = new DefaultMessage("modifyIndex", new Object[]{++index,0});
                                     this.getManager().send(message1, this, State.actors.get("cacheActor"));
                                 }
@@ -298,6 +314,15 @@ public class TaskActor extends AbstractActor {
                                     return;
                                 else if(i==1 && !this.getMyStack().isEmpty()){   //处理完当前数据块，需要指向下一块数据了
                                     System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
+
+                                    while(State.actors.get("cacheActor").getMessageCount() == 100){
+                                        try {
+                                            Thread.sleep(1);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
                                     DefaultMessage message1 = new DefaultMessage("modifyIndex", new Object[]{++index,0});
                                     this.getManager().send(message1, this, State.actors.get("cacheActor"));
                                 }

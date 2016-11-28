@@ -105,9 +105,9 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 }
 
                 System.out.println("T2-4谓词返回结果了--去处理 predR");
-//                dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
-//                actorManager.send(dmessage,curactor,curactor);
-//                return false; //中断此次处理--先处理返回的结果
+                dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                actorManager.send(dmessage,curactor,curactor);
+                return false; //中断此次处理--先处理返回的结果
             }
         }else if (atask.getId() == getLevel() - 1) {
             System.out.print("T2-4遇到上层结束标签，");
@@ -173,9 +173,11 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
         if(pred){    //true
             if(atask.isInSelf()){  //来自自己--设置的肯定是predR
+                System.out.println(this + " predR = true,来自自身，设置list.size() - 1");
                 wt.setPredR(pred);
             }else{                 //来自T3.preds'--设置的肯定是pathR
-                wt = (WaitTask)list.get(0);//第一个(id,null,null) // (id,true,null)
+                System.out.println(this + " predR = true,来自T3'，设置list.get(0)");
+                wt = (WaitTask)list.get(0);//第一个(id,null,null) // (id,true,null)--换为(id,true/null,true)
                 wt.setPathR(pred);
             }
 
@@ -188,10 +190,12 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                 if(wt.isPredsSatisified()) {
                     //(id,true,true)--上传
                     if(list.size() > 1 && !((WaitTask)list.get(0)).isPathRTrue()) {  //原来是T3-4，现在只有T2-4 检查成功
+                        System.out.println("原来是T3-4，现在只有T2-4 检查成功,发消息给自己&删除其他");
                         curractor.sendPredsResult(new ActorTask(idd, true, true));        //给自己
                         for(int i = 1;i<list.size();i++)
                             list.remove(i);
                     } else {
+                        System.out.println("T3-4||T2-4检查成功");
                         curractor.popFunction();   //弹栈
                         curractor.sendPredsResult(new ActorTask(idd, true, isInSelf));  //上传
                         if(!ss.isEmpty() && ((ActorTask) ss.peek()).getObject() instanceof StateT2_4){
@@ -199,6 +203,7 @@ public class StateT2_4 extends StateT2 implements Cloneable{
                         }
                     }
                 } else if(wt.isWaitT3ParallPreds()) { //(id,true,null)--(id,T2-4,isInself)换为（id,qw,isInself）
+                    System.out.println("T3'检查成功，(id,true,null)--则(id,T2-4,isInself)换为（id,qw,isInself）");
                     curractor.popFunction(); //弹栈
                     WaitState waitState = new WaitState();
                     waitState.setLevel(((State) task.getObject()).getLevel());
@@ -209,10 +214,10 @@ public class StateT2_4 extends StateT2 implements Cloneable{
 
         }else{     //false
             if(atask.isInSelf()){
-                System.out.println(this + " predR = false,删除list.size() - 1");
+                System.out.println(this + " predR = false,来自自身，删除list.size() - 1");
                 list.remove(list.size() - 1);
             }else{
-                System.out.println(this + " predR = false,清空list");
+                System.out.println(this + " predR = false,来自T3',清空list");
                 list.clear();
             }
         }

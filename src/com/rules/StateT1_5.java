@@ -121,7 +121,7 @@ public class StateT1_5 extends StateT1{
                 }
 
                 if(num > 0){
-                    curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{num, wtask}, isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{num, wtask.getPathR()}, isInself));
                 } else{
                     curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
                 }

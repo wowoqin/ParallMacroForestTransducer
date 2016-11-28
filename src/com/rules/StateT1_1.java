@@ -48,14 +48,14 @@ public class StateT1_1 extends StateT1 {
         String tag = atask.getObject().toString();
         // T1-1 不需要等待其他信息--只有一个list
         if(getLevel() == layer && tag.equals(_test)){     //遇到自己的结束标签
-//            System.out.print("T1-1遇到自己的结束标签，");
+            System.out.print("T1-1遇到自己的结束标签，");
             if(!list.isEmpty()){
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
-//                    System.out.println("T1-1是整个XPath--输出");
+                    System.out.println("T1-1是整个XPath--输出");
                     WaitTask wtask = (WaitTask)list.get(0);
                     wtask.output();
                 }
-//                else System.out.println("T1-1是后续path");
+                else System.out.println("T1-1是后续path");
             }
             else System.out.println("T1-1没遇到匹配的开始标签");
         }else if (layer == getLevel() - 1) {   // 遇到上层结束标签

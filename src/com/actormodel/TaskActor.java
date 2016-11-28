@@ -100,21 +100,21 @@ public class TaskActor extends AbstractActor {
     @Override
     protected void runBody() {}
 
-    @Override
-    public void addMessage(DefaultMessage message) {
-        if(message != null) {
-            List var2 = this.messages;
-            synchronized(this.messages) {
-                if(this.messages.size() >= this.getMaxMessageCount()) {
-//                    System.out.println(this.messages.size());
-//                    throw new IllegalStateException("too many messages, cannot add");
-                }
-
-                this.messages.add(message);
-            }
-        }
-
-    }
+//    @Override
+//    public void addMessage(DefaultMessage message) {
+//        if(message != null) {
+//            List var2 = this.messages;
+//            synchronized(this.messages) {
+//                if(this.messages.size() >= this.getMaxMessageCount()) {
+////                    System.out.println(this.messages.size());
+////                    throw new IllegalStateException("too many messages, cannot add");
+//                }
+//
+//                this.messages.add(message);
+//            }
+//        }
+//
+//    }
 
 //        发送的消息--返回的结果（T/F/result）
 //        接收的消息--输入用完--等待
@@ -277,10 +277,10 @@ public class TaskActor extends AbstractActor {
                                 if(!flg)
                                     return;
                                 else if(i==1 && !this.getMyStack().isEmpty()){   //处理完当前数据块，需要指向下一块数据了
-//                                    System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
-                                    while(State.actors.get("cacheActor").getMessageCount() == 100){
+                                    System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
+                                    while(State.actors.get("cacheActor").getMessageCount() == 90){
                                         try {
-                                            Thread.sleep(1);
+                                            Thread.sleep(10);
                                         } catch (InterruptedException e) {
                                             e.printStackTrace();
                                         }
@@ -315,9 +315,9 @@ public class TaskActor extends AbstractActor {
                                 else if(i==1 && !this.getMyStack().isEmpty()){   //处理完当前数据块，需要指向下一块数据了
                                     System.out.println(this.getName() + " 对当前数据块for循环处理结束--要求去modifyIndex");
 
-                                    while(State.actors.get("cacheActor").getMessageCount() == 100){
+                                    while(State.actors.get("cacheActor").getMessageCount() == 90){
                                         try {
-                                            Thread.sleep(1);
+                                            Thread.sleep(10);
                                         } catch (InterruptedException e) {
                                             e.printStackTrace();
                                         }
@@ -382,7 +382,7 @@ public class TaskActor extends AbstractActor {
                     System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
                     aatask = new ActorTask(level,new Object[]{currQ,index,arrid},false);
                     //向 actor 发送数据块的 index + id
-                    if(id == 1){
+                    if(arrid == 9){
                         System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
                         DefaultMessage message = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
                         getManager().send(message, this, actor);
@@ -401,7 +401,7 @@ public class TaskActor extends AbstractActor {
 
             //向 actor 发送数据块的 index + id
             System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
-            if(arrid == 1){
+            if(arrid == 9){
                 DefaultMessage message = new DefaultMessage("modifyIndex", new Object[]{++index ,0});
                 getManager().send(message, this, actor);
             }else {

@@ -188,7 +188,7 @@ public class StateT1_6 extends StateT1{
                 }
 
                 if(num > 0){
-                    curactor.sendPathResult(new ActorTask(task.getId(),new Object[]{num,wtask},isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(),new Object[]{num,wtask.getPathR()},isInself));
                 }else {
 //                    System.out.println("T1-6 path/pred检查失败，上传NF");
                     curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
@@ -216,17 +216,19 @@ public class StateT1_6 extends StateT1{
     * */
     @Override
     public void predMatchFunction(ActorTask atask,TaskActor curractor) {
-        Boolean pred = (Boolean)atask.getObject();
-//        System.out.print("T1-6处理predR，");
-        ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
-        if(pred){
-//            System.out.println("preR==true，设置 llist 中所有 wt ");
-            for(WaitTask wt:llist)
-                wt.setPredR(pred);//true--设置
-        } else {
-//            System.out.println("preR==false，清空llist");
-            llist.clear();  //false--清空当前llist
-            //告诉path不用继续检查了--其实就是让path弹栈-若有等待压栈的就压栈
+        if(!list.isEmpty()){
+            Boolean pred = (Boolean)atask.getObject();
+            System.out.print("T1-6处理predR，");
+            ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
+            if(pred){
+                System.out.println("preR==true，设置 llist 中所有 wt ");
+                for(WaitTask wt:llist)
+                    wt.setPredR(pred);//true--设置
+            } else {
+                System.out.println("preR==false，清空llist");
+                llist.clear();  //false--清空当前llist
+                //告诉path不用继续检查了--其实就是让path弹栈-若有等待压栈的就压栈
+            }
         }
     }
 
@@ -237,25 +239,27 @@ public class StateT1_6 extends StateT1{
    * */
     @Override
     public void pathMatchFunction(ActorTask atask) {
-        ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size() - 1);//最后一个list
-//        System.out.print("T1-6 处理pathR，");
+        if(!list.isEmpty()){
+            ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size() - 1);//最后一个list
+            System.out.print("T1-6 处理pathR，");
 
-        if(!llist.isEmpty()){
-            Object[] obj = (Object[])atask.getObject();
-            int num = (Integer)obj[0];
+            if(!llist.isEmpty()){
+                Object[] obj = (Object[])atask.getObject();
+                int num = (Integer)obj[0];
 
-            if(num==0){
-//                System.out.println("pathR==notFound，清空llist");
-                llist.clear();   //清空llist
-            } else {
-//                System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
-                WaitTask wt = llist.get(0);
-                String tag = (String) obj[1];
-                wt.setPathR(tag);
-                for(int i = 0;i<num - 1;i++)
-                    llist.add(wt);
+                if(num==0){
+                    System.out.println("pathR==notFound，清空llist");
+                    llist.clear();   //清空llist
+                } else {
+                    System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
+                    WaitTask wt = llist.get(0);
+                    String tag = (String) obj[1];
+                    wt.setPathR(tag);
+                    for(int i = 0;i<num - 1;i++)
+                        llist.add(wt);
+                }
             }
+            //else--已经是空的（即pred返回false），若输出--删除空的llist、、若上传，计算的时候size==0
         }
-        //else--已经是空的（即pred返回false），若输出--删除空的llist、、若上传，计算的时候size==0
     }
 }

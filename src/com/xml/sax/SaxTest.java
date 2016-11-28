@@ -17,8 +17,11 @@ public class SaxTest {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser parser = factory.newSAXParser();
         File f = new File("test8.xml");
+        MySaxParser dh = new MySaxParser("//a[//b[/c]]//d[/e]/f");
+
 //        File f = new File("C:\\Users\\qin\\Desktop\\test\\sample1.xml");
-        MySaxParser dh = new MySaxParser("//a[//b[/c]]/d");
+////        MySaxParser dh = new MySaxParser("//item/description/parlist");
+//        MySaxParser dh = new MySaxParser("//name");
         parser.parse(f, dh);
 
         try {

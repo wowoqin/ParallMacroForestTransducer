@@ -65,7 +65,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 if(!_pathstack.isEmpty()){      //上一个的path已经检查成功弹栈了
                     System.out.println("pathstack 不为空，当前q1会add到curractor的缓存list中去");
                     //向 actor 发送数据块的 index + id
-                    if(id == 1){
+                    if(id == 9){
 //                        System.out.println("当前数据块处理结束，" + name + " 的Index：++index");
                         dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
                         actorManager.send(dmessage, curactor, actor);
@@ -84,7 +84,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
 
             //向 actor 发送数据块的 index + id
 //            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
-            if(id == 1){
+            if(id == 9){
                 dmessage = new DefaultMessage("modifyIndex", new Object[]{++index,0});
                 actorManager.send(dmessage, curactor, actor);
             }else {
@@ -179,7 +179,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 }
 
                 if(num > 0){
-                    curactor.sendPathResult(new ActorTask(task.getId(),new Object[]{num,wtask},isInself));
+                    curactor.sendPathResult(new ActorTask(task.getId(),new Object[]{num,wtask.getPathR()},isInself));
                     if(!ss.isEmpty()){
                         task = (ActorTask)(ss.peek());
                         State currstate = (State)task.getObject();

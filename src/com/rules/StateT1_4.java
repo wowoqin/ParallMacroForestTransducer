@@ -76,7 +76,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
 
             //向 actor 发送数据块的 index + id
 //            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
-            if(id == 1){
+            if(id == 9){
                 dmessage = new DefaultMessage("modifyIndex", new Object[]{++index, 0});
                 actorManager.send(dmessage, curactor, actor);
             }else {
@@ -151,7 +151,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
             if(!list.isEmpty()){
                 int num = getList().size();
                 WaitTask wtask = (WaitTask)list.get(0);
-                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{num, wtask}, isInself));
+                curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{num, wtask.getPathR()}, isInself));
                 if(!ss.isEmpty()){
                     task = (ActorTask)(ss.peek());
                     State currstate =(State)task.getObject();

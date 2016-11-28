@@ -50,14 +50,14 @@ public class StateT1_8 extends StateT1 {
         String tag = atask.getObject().toString();
 
         if ((layer >= getLevel()) && (tag.equals(_test))) {
-//            System.out.print("T1-8.test匹配，add(wt)，");
+            System.out.print("T1-8.test匹配，add(wt)，");
             list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, null, null));
             String prname = ((Integer)curactor.hashCode()).toString().concat("T1-8.prActor");
             Actor actor;
             ActorTask aatask;
 
-            if (!actors.containsKey(prname)) {   // 若predstack 为空
+            if (!actors.containsKey(prname)) {
                 System.out.println("practor == null,先创建 prActor");
                 actor = actorManager.createAndStartActor(TaskActor.class, prname);
                 _q3.setLevel(layer + 1);
@@ -242,7 +242,7 @@ public class StateT1_8 extends StateT1 {
                 }
 
                 if(num > 0){
-                    curactor.sendPathResult(new ActorTask(idd,new Object[]{num,wtask},isInself));
+                    curactor.sendPathResult(new ActorTask(idd,new Object[]{num,wtask.getPathR()},isInself));
                     if(!ss.isEmpty()){
                         task = (ActorTask)(ss.peek());
                         State currstate = (State)task.getObject();

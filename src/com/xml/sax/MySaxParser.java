@@ -61,9 +61,9 @@ public class MySaxParser<T> extends DefaultHandler {
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         if(id == array.length-1){
             array[id] = new ActorTask(layer,qName,true);
-            while(cacheActor.getMessageCount() == 100){
+            while(cacheActor.getMessageCount() == 90){
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -84,9 +84,9 @@ public class MySaxParser<T> extends DefaultHandler {
         layer--;
         if(id == array.length-1){
             array[id] = new ActorTask(layer,qName,false);
-            while(cacheActor.getMessageCount()==100){
+            while(cacheActor.getMessageCount() == 90){
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

@@ -36,7 +36,7 @@ public class WaitState extends State {
                     } while(curactor.getMessageCount() == 0);
 
                     System.out.println("qw.pred'返回结果了--先去处理 predR");
-                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                     actorManager.send(dmessage,curactor,curactor);
                     return false; //中断此次处理--先处理返回的结果
                 }
@@ -55,7 +55,7 @@ public class WaitState extends State {
                 State state = ((State) (((ActorTask) ss.peek()).getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
-                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }

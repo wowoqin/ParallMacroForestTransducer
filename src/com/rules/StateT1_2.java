@@ -30,10 +30,12 @@ public class StateT1_2 extends StateT1 {
         String tag = atask.getObject().toString();
 
         if((getLevel() == layer) && (tag.equals(_test))) {
-//            System.out.println("T1-2匹配到开始标签，压栈 & add(wt)");
+            System.out.println("T1-2匹配到开始标签，压栈 & add(wt)");
             addWTask(new WaitTask(layer, null, tag));
             _q3.setLevel(layer + 1);
-            curactor.pushTaskDo(new ActorTask(layer, new Object[]{_q3,index,id}, true));
+            // T1-2直接pushFunction，没有发消息，则还是在for循环中修改index和id
+            this.getIndexAndId(index,id);
+            curactor.pushFunction(new ActorTask(layer,_q3,true,index,id));
         }
         return true;
     }

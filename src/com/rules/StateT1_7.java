@@ -41,55 +41,36 @@ public class StateT1_7 extends StateT1 implements Cloneable{
 
         if ((layer >= getLevel()) && (tag.equals(_test))) {
             // 在 list 中添加需要等待匹配的任务模型
-//            System.out.print("T1-7.test匹配，add(wt)，");
+            System.out.print("T1-7.test匹配，add(wt)，");
             list.add(new ArrayList<WaitTask>());
             addWTask(new WaitTask(layer, true, null));
             String name = ((Integer)curactor.hashCode()).toString().concat("T1-7.paActor");
             Actor actor;
-            ActorTask aatask;
+            this.getIndexAndId(index,id);
 
             if(!actors.containsKey(name)){
-//                System.out.println("pathactor == null,创建后q1再压栈");
+                System.out.println("pathactor == null,创建后q1再压栈");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q1.setLevel(layer + 1);
-                dmessage = new DefaultMessage("res&&push",
-                        new Object[]{this._pathstack,new ActorTask(layer, new Object[]{_q1}, false)});
+                dmessage = new DefaultMessage("res&&push",new ActorTask(this._pathstack,layer,_q1,false,index,id));
                 actorManager.send(dmessage, curactor, actor);
             } else{  // 若path  actor 已经创建了,则发送 q'' 给 paActor即可
-//                System.out.print("T1-7.paActor 已经存在，");
+                System.out.print("T1-7.paActor 已经存在，");
                 actor = actors.get(name);
                 State currQ = (State)_q1.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
-                aatask = new ActorTask(layer,new Object[]{currQ},false);
+                ActorTask  aatask = new ActorTask(layer,currQ,false,index,id);
                 if(!_pathstack.isEmpty()){      //上一个的path已经检查成功弹栈了
                     System.out.println("pathstack 不为空，当前q1会add到curractor的缓存list中去");
-                    //向 actor 发送数据块的 index + id
-                    if(id == 9){
-//                        System.out.println("当前数据块处理结束，" + name + " 的Index：++index");
-                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
-                        actorManager.send(dmessage, curactor, actor);
-                    }else {
-//                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
-                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{index, ++id,aatask});
-                        actorManager.send(dmessage, curactor, actor);
-                    }
+                    dmessage = new DefaultMessage("needModifyIndex", aatask);
+                    actorManager.send(dmessage, curactor, actor);
                     return true;
                 }else{
-//                    System.out.println("，pathstack为空-即上一个q1已经检查成功弹栈了，当前q1直接压栈");
+                    System.out.println("，pathstack为空-即上一个q1已经检查成功弹栈了，当前q1直接压栈");
                     dmessage = new DefaultMessage("push",aatask);
                     actorManager.send(dmessage, curactor, actor);
                 }
-            }
-
-            //向 actor 发送数据块的 index + id
-//            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
-            if(id == 9){
-                dmessage = new DefaultMessage("modifyIndex", new Object[]{++index,0});
-                actorManager.send(dmessage, curactor, actor);
-            }else {
-                dmessage = new DefaultMessage("modifyIndex", new Object[]{index, ++id});
-                actorManager.send(dmessage, curactor, actor);
             }
         }
         return true;
@@ -105,17 +86,17 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                 ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(list.size()-1);
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
                     //若是要输出，则输出list中最后一个list
-//                    System.out.print("T1-7是个XPath，list.size()= "+list.size());
+                    System.out.print("T1-7是个XPath，list.size()= "+list.size());
                     if(!llist.isEmpty()){
                         WaitTask wtask = llist.get(0);
                         if(wtask.hasReturned()){
-//                            System.out.println(",T1-7的path结果已处理完毕--输出llist.size= "+llist.size());
-//                            for(WaitTask wwtask:llist){
-//                                wwtask.output();
-//                            }
+                            System.out.println(",T1-7的path结果已处理完毕--输出llist.size= "+llist.size());
+                            for(WaitTask wwtask:llist){
+                                wwtask.output();
+                            }
                             list.remove(llist);   //删除这个llist
                         }else{   //还未处理返回结果
-//                            System.out.println(",T1-7 path还没返回结果||返回结果还未处理,等啊等。。。");
+                            System.out.println(",T1-7 path还没返回结果||返回结果还未处理,等啊等。。。");
                             do{
                                 try {
                                     Thread.sleep(1);
@@ -124,21 +105,21 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                                 }
                             } while(curactor.getMessageCount() == 0);
 
-//                            System.out.println("T1-7.path返回结果了--先去处理 pathR，当前结束标签重新入消息队列");
-                            dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                            System.out.println("T1-7.path返回结果了--先去处理 pathR，当前结束标签重新入消息队列");
+                            dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                             actorManager.send(dmessage,curactor,curactor);
                             return false; //中断此次处理--先处理返回的结果
                         }
                     }else{
-//                        System.out.println("T1-7.path返回NF，删除llist");
+                        System.out.println("T1-7.path返回NF，删除llist");
                         list.remove(llist);     //删除为空的llist
                     }
                 }else{ //肯定是要上传的，但是若此时还未处理path的返回结果，就该等待先处理--最后一个llist中的元素
-//                    System.out.print("T1-7是后续path，检查最后一个llist，");
+                    System.out.print("T1-7是后续path，检查最后一个llist，");
                     if(!llist.isEmpty()){
                         WaitTask wtask = llist.get(0);
                         if(!wtask.hasReturned()){
-//                            System.out.print("T1-7 path还没返回结果||返回结果还未处理,");
+                            System.out.print("T1-7 path还没返回结果||返回结果还未处理,");
                             do{
                                 try {
                                     Thread.sleep(1);
@@ -147,21 +128,21 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                                 }
                             } while(curactor.getMessageCount() == 0);
 
-//                            System.out.println("T1-7.path返回结果了--先去处理 pathR，当前结束标签重新入消息队列");
-                            dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                            System.out.println("T1-7.path返回结果了--先去处理 pathR，当前结束标签重新入消息队列");
+                            dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                             actorManager.send(dmessage,curactor,curactor);
                             return false; //中断此次处理--先处理返回的结果
                         }
                     }else{
-//                        System.out.println("T1-7 path 返回NF，llist为空，删除");
+                        System.out.println("T1-7 path 返回NF，llist为空，删除");
                         list.remove(llist);     //删除为空的llist
                     }
                 }
             }else{
-//                System.out.println("T1-7未找到匹配的开始标记");
+                System.out.println("T1-7未找到匹配的开始标记");
             }
         }else if (layer == getLevel() - 1) { // 遇到上层结束标签(肯定是作为后续path)
-//            System.out.println("T1-7遇到上层结束标签-->传递结果");
+            System.out.println("T1-7遇到上层结束标签-->传递结果");
             Stack ss = curactor.getMyStack();
             ActorTask task = (ActorTask)ss.peek();
             boolean isInself = task.isInSelf();
@@ -184,27 +165,28 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                         task = (ActorTask)(ss.peek());
                         State currstate = (State)task.getObject();
                         if(currstate instanceof StateT1_5){
-                            dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                            dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                             actorManager.send(dmessage, curactor, curactor);
                             return false;
                         }else if(currstate instanceof StateT1_7){
                             //T1-7作为AD轴test的后续path，即T1-7/T1-8
-                            curactor.processSameADPath(new Object[]{task.getId(),num,wtask});
+//                            curactor.processSameADPath(new Object[]{task.getId(),num,wtask});
+                            curactor.processSameADPath(new ActorTask(task.getId(),new Object[]{num,wtask},true));
                         }
                     }
                 }else {
-//                    System.out.println("T1-7 path检查失败，无上传结果");
+                    System.out.println("T1-7 path检查失败，无上传结果");
                     curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
                 }
             }else{
-//                System.out.println("T1-7没遇到其开始标记&&遇到了上层结束标记，上传结果 NF");
+                System.out.println("T1-7没遇到其开始标记&&遇到了上层结束标记，上传结果 NF");
                 curactor.sendPathResult(new ActorTask(task.getId(), new Object[]{0, "NF"}, isInself));
             }
 
             if(!ss.isEmpty()){
                 State currstate = (State)((ActorTask)ss.peek()).getObject();
                 if(currstate instanceof StateT1_5){
-                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }
@@ -220,7 +202,7 @@ public class StateT1_7 extends StateT1 implements Cloneable{
   * */
     @Override
     public void pathMatchFunction(ActorTask atask) {
-//        System.out.print("T1-7 处理pathR，");
+        System.out.print("T1-7 处理pathR，");
         for(int i = list.size()-1;i >= 0;i--){
             ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
             if(!llist.isEmpty()){
@@ -230,10 +212,10 @@ public class StateT1_7 extends StateT1 implements Cloneable{
                     int num = (Integer)obj[0];
 
                     if(num == 0){
-//                        System.out.println("pathR == notFound，清空llist");
+                        System.out.println("pathR == notFound，清空llist");
                         llist.clear();   //清空llist
                     } else {
-//                        System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
+                        System.out.println("返回了 "+num+" 个pathR，对llist进行设置");
 
                         String tag = (String) obj[1];
                         wt.setPathR(tag);

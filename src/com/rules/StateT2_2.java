@@ -32,7 +32,8 @@ public class StateT2_2 extends StateT2 {
         if((layer == getLevel()) && (tag.equals(_test))){     // T2-2 的test匹配
             addWTask(new WaitTask(layer, null, true));
             _q3.setLevel(layer + 1);
-            curactor.pushTaskDo(new ActorTask(layer, new Object[]{_q3,index,id}, true));   //确定是给自己的
+            this.getIndexAndId(index, id);
+            curactor.pushFunction(new ActorTask(layer, _q3, true, index, id));
         }
         return true;
     }
@@ -62,7 +63,7 @@ public class StateT2_2 extends StateT2 {
                 State state=((State) (((ActorTask) ss.peek()).getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
-                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }

@@ -28,7 +28,7 @@ public class StateT1_3 extends StateT1 implements Cloneable {
 
         if ((layer >= getLevel()) && (tag.equals(_test))) {//当前层数大于等于应该匹配的层数 getLayer（）就可以
             addWTask(new WaitTask(layer, true, tag));
-//            System.out.println("T1-3 开始标签匹配，add(wt)");
+            System.out.println("T1-3 开始标签匹配，add(wt)");
         }
         return true;
     }
@@ -44,7 +44,7 @@ public class StateT1_3 extends StateT1 implements Cloneable {
                 if(curactor.getName().equals("mainActor") && (curactor.getMyStack().size()==1)){
 //                    System.out.println("&& T1-3是整个XPath--输出最后一个标签 list.size= "+ list.size());
                     WaitTask wtask = (WaitTask)list.get(list.size()-1);  //每次输出最后一个元素
-//                    curactor.output(wtask);
+                    curactor.output(wtask);
                     list.remove(wtask);
                 }
 //                else System.out.println("&& T1-3是个后续path--等待上传");

@@ -30,7 +30,7 @@ public class StateT1_1 extends StateT1 {
         if ((getLevel() == layer) && (tag.equals(_test))) {
             // 在 list 中添加检查成功的任务模型
             addWTask(new WaitTask(layer, true, tag));
-//            System.out.println("T1-1 开始标签匹配，add(wt)");
+            System.out.println("T1-1 开始标签匹配，add(wt)");
         }
         return true;
     }

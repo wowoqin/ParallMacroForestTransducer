@@ -38,14 +38,14 @@ public class StateT1_4 extends StateT1 implements Cloneable {
 //            System.out.print("T1-4 开始标签匹配，add(wt),wt.id= "+layer);
             String name = ((Integer) curactor.hashCode()).toString().concat("T1-4.prActor");
             Actor actor;
-            ActorTask aatask;
+
+            this.getIndexAndId(index,id);
 
             if(!actors.containsKey(name)) {   // 若predstack 为空
                 System.out.println("，T1-4.prActor == null，创建");
                 actor = actorManager.createAndStartActor(TaskActor.class, name);
                 _q3.setLevel(layer + 1);
-                dmessage = new DefaultMessage("res&&push",
-                        new Object[]{this._predstack,new ActorTask(layer, new Object[]{_q3,index,id}, false)});
+                dmessage = new DefaultMessage("res&&push",new ActorTask(this._predstack,layer,_q3,false,index,id));
                 actorManager.send(dmessage, curactor, actor);
             }else{  // 若谓词 actor 已经创建了,则发送 q' 给 prActor即可
                 System.out.print("，T1-4.prActor 已经存在");
@@ -53,35 +53,17 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                 State currQ = (State) _q3.copy();
                 currQ.setLevel(layer + 1);
                 currQ.list = new ArrayList();
-                aatask = new ActorTask(layer,new Object[]{currQ,index,id},false);
+                ActorTask aatask = new ActorTask(layer,currQ,false,index,id);
                 if(!actors.containsKey(name)){      //上一个的谓词已经检查成功弹栈了
                     System.out.println("，predstack 不为空，当前q3会add到curractor的缓存list中去");
-                    //向 actor 发送数据块的 index + id
-                    if(id == 1){
-                        System.out.println(" 当前数据块处理结束，" + name + " 的Index：++index");
-                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{++index,0,aatask});
-                        actorManager.send(dmessage, curactor, actor);
-                    }else {
-                        System.out.println("当前数据块还没结束，" + name + " 的Index：index");
-                        dmessage = new DefaultMessage("needModifyIndex", new Object[]{index,++id,aatask});
-                        actorManager.send(dmessage, curactor, actor);
-                    }
+                    dmessage = new DefaultMessage("needModifyIndex", aatask);
+                    actorManager.send(dmessage, curactor, actor);
                     return true;
                 }else{
                     System.out.println("，predstack为空-即上一个q3已经检查成功弹栈了，当前q3直接压栈");
                     dmessage = new DefaultMessage("push",aatask);
                     actorManager.send(dmessage, curactor, actor);
                 }
-            }
-
-            //向 actor 发送数据块的 index + id
-//            System.out.println(name + " 直接去cacheactor那里取数据块：++index/index");
-            if(id == 9){
-                dmessage = new DefaultMessage("modifyIndex", new Object[]{++index, 0});
-                actorManager.send(dmessage, curactor, actor);
-            }else {
-                dmessage = new DefaultMessage("modifyIndex", new Object[]{index, ++id});
-                actorManager.send(dmessage, curactor, actor);
             }
         }
         return true;
@@ -122,7 +104,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                         }
 
                         System.out.println("T1-4谓词返回结果了--先去处理 predR");
-                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                         actorManager.send(dmessage,curactor,curactor);
                         return false; //中断此次处理--先处理返回的结果
                     }
@@ -130,7 +112,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                     System.out.println("T1-4 是个后续path--查看最后一个 wt 的当前状态");
                     if(!wtask.hasReturned()){
                         System.out.println("T1-4 最后一个 wt 还未对predR进行处理 || predR还未返回");
-                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                         actorManager.send(dmessage,curactor,curactor);
                         return false; //中断此次处理--先处理返回的结果
                     }else if(!wtask.isSatisfiedOut()){
@@ -157,12 +139,12 @@ public class StateT1_4 extends StateT1 implements Cloneable {
                     State currstate =(State)task.getObject();
                     if(currstate instanceof StateT1_5){
                         //此处选择发送消息是因为返回的消息肯定还未处理--先处理返回的path结果
-                        dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                        dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                         actorManager.send(dmessage, curactor, curactor);
                         return false;
                     }else if(currstate instanceof StateT1_4){
                         //T1-4作为AD轴test的后续path，即T1-7/T1-8
-                        curactor.processSameADPath(new Object[]{task.getId(),num,wtask});
+                        curactor.processSameADPath(new ActorTask(task.getId(),new Object[]{num,wtask},true));
                     }
                 }
             }else{
@@ -181,7 +163,7 @@ public class StateT1_4 extends StateT1 implements Cloneable {
         Boolean pred = (Boolean)atask.getObject();
         System.out.println("T1-4 对返回的predR进行处理，到结束标记的时候，true-输出/false-删除,predR == " + pred);
 
-        for(int i=list.size()-1;i>=0;i--){
+        for(int i=list.size()-1;i >= 0;i--){
             WaitTask wt = (WaitTask)list.get(i);  //id相同的元素
             if(wt.getId() == atask.getId()){
                 wt.setPredR(pred);   //true/false先设置--到结束标记的时候，false的删除

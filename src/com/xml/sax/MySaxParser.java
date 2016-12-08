@@ -31,7 +31,7 @@ public class MySaxParser<T> extends DefaultHandler {
     protected DefaultMessage message;
     protected Actor cacheActor;
     protected Actor mainActor;
-    protected ActorTask[] array = new ActorTask[2];
+    protected ActorTask[] array = new ActorTask[100];
     protected int id = 0;    //元素的索引
     protected int index = 0; //数据块的索引
 
@@ -61,7 +61,7 @@ public class MySaxParser<T> extends DefaultHandler {
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         if(id == array.length-1){
             array[id] = new ActorTask(layer,qName,true);
-            while(cacheActor.getMessageCount() == 90){
+            while(cacheActor.getMessageCount() >= 90){
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -82,9 +82,11 @@ public class MySaxParser<T> extends DefaultHandler {
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
         layer--;
+
         if(id == array.length-1){
             array[id] = new ActorTask(layer,qName,false);
-            while(cacheActor.getMessageCount() == 90){
+
+            while(cacheActor.getMessageCount() >= 90){
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -98,6 +100,13 @@ public class MySaxParser<T> extends DefaultHandler {
             id = 0;
         }else{
             array[id++] = new ActorTask(layer,qName,false);
+            // 若最后一块不完整 直接发送当前
+            if(layer == 0){
+                message = new DefaultMessage("node",new ActorTask(index++,array,true));
+                manager.send(message,null,cacheActor);
+//                array = new ActorTask[array.length];
+//                id = 0;
+            }
         }
     }
 

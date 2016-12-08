@@ -32,7 +32,7 @@ public class StateT2_1 extends StateT2 {
             boolean isInSelf = task.isInSelf();
 
             if(!list.isEmpty()){    //T3-1
-//                System.out.println("T3-1.T2-1 检查成功，需要换为 qw");
+                System.out.println("T3-1.T2-1 检查成功，需要换为 qw");
                 WaitState waitState = new WaitState();
                 waitState.setLevel(getLevel());
                 waitState.list.add(this.list.get(0));
@@ -43,7 +43,7 @@ public class StateT2_1 extends StateT2 {
                 curactor.sendPredsResult(new ActorTask(idd, true, true));//确定是给自己的--当前栈顶已经是 qw
             }else{      //T2-1
                 //发送谓词结果 && pop 当前栈顶
-//                System.out.println("T2-1 检查成功，pop && 返回 true");
+                System.out.println("T2-1 检查成功，pop && 返回 true");
                 curactor.popFunction();
                 curactor.sendPredsResult(new ActorTask(idd, true, isInSelf));
                 if(curactor.getMyStack().isEmpty() && !curactor.getMylist().isEmpty()){
@@ -57,7 +57,7 @@ public class StateT2_1 extends StateT2 {
     @Override
     public boolean endElementDo(int index,int id,ActorTask atask,TaskActor curactor){
         if (atask.getId() == getLevel() - 1) {  //遇到上层结束标签--检查失败
-//            System.out.println("T2-1遇到上层结束标签--自己检查失败--上传false");
+            System.out.println("T2-1遇到上层结束标签--自己检查失败--上传false");
             Stack ss = curactor.getMyStack();
             ActorTask task = ((ActorTask) ss.peek());//栈顶(id,T2-1,isInself)
             int idd = task.getId();
@@ -73,8 +73,8 @@ public class StateT2_1 extends StateT2 {
                 State state=((State) (((ActorTask) ss.peek()).getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
-//                    System.out.println(curactor.getName()+" 的栈顶是 "+state);
-                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    System.out.println(curactor.getName()+" 的栈顶是 "+state);
+                    dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }

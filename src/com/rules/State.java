@@ -56,6 +56,32 @@ public  abstract class State  implements Cloneable {
         }
     }
 
+    public void appendPathR(ActorTask task){
+        int idd = task.getId();
+        Object[] obj = (Object[])task.getObject();
+        int num = (Integer)obj[0];
+        WaitTask waitTask = (WaitTask)obj[1];
+        System.out.println(this + " 收到" + num + " 个需要append的pathR,pathR.id= "+idd);
+        for(int i = list.size()-1;i >= 0;i--){
+            ArrayList<WaitTask> llist = (ArrayList<WaitTask>)list.get(i);
+            if(!llist.isEmpty() && llist.get(0).getId() == idd){
+                for(int j = 0;j < num;j++){
+                    llist.add(waitTask);
+                }
+                return;
+            }
+        }
+    }
+
+    public void getIndexAndId(int index,int id){
+        if(id == 99){
+            ++index;
+            id = 0;
+        }else{
+            ++id;
+        }
+    }
+
     public void setList(ArrayList list) {
         this.list = list;
     }

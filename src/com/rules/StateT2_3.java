@@ -54,7 +54,7 @@ public class StateT2_3 extends StateT2{
                 if(!ss.isEmpty()){
                     //pop 完了之后还是T2-3 && T2-3 是要传给上级actor的
                     State state = (State)((ActorTask) ss.peek()).getObject();
-                    if((state instanceof StateT2_3) && !isInSelf){   // T2-3 作为 AD 轴test的谓词
+                    if((state instanceof StateT2_3)){   // T2-3 作为 AD 轴test的谓词
                         curactor.processSameADPred();
                     }
                 }else if(!curactor.getMylist().isEmpty()){
@@ -75,41 +75,15 @@ public class StateT2_3 extends StateT2{
             int idd = atask.getId();
             boolean isInSelf = task.isInSelf();
 
-//            if(!list.isEmpty()){
-//                System.out.println("T3-3");
-//                WaitTask wtask = (WaitTask)list.get(0);
-//                if(!wtask.hasReturned()){
-//                    if(curactor.getMessageCount() > 0){
-//                        System.out.print("T3-3.preds' 已有返回结果，还未处理,");
-//                    }else{
-//                        System.out.print("T3-3.preds' 没返回结果等啊等。。。");
-//                        do{
-//                            try {
-//                                Thread.sleep(1);
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        } while(curactor.getMessageCount() == 0);
-//                    }
-//
-//                    System.out.println("T2-3.preds'返回结果了--先去处理 predR' ");
-//                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
-//                    actorManager.send(dmessage,curactor,curactor);
-//                    return false; //中断此次处理--先处理返回的结果
-//                }
-//            }else{
-//                System.out.println("T3-3.preds' || T2-3检查失败");
-                //pop(id,T2-3,isInself)
-                curactor.popFunction();
-                //发消息（id,false,isInself）
-                curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
-//            }
+            curactor.popFunction();
+            //发消息（id,false,isInself）
+            curactor.sendPredsResult(new ActorTask(idd, false, isInSelf));
             //当前栈不为空，栈顶进行endElementDo 操作（输出（T1-2或者T1-6）
             if (!ss.isEmpty()) {
                 State state=((State) (((ActorTask) ss.peek()).getObject()));
                 // T1-2 、T1-6的结束标签
                 if(state instanceof StateT1_2 || state instanceof StateT1_6){
-                    dmessage = new DefaultMessage("nodeID",new Object[]{index,id});
+                    dmessage = new DefaultMessage("nodeID",new ActorTask(index,id));
                     actorManager.send(dmessage, curactor, curactor);
                     return false;
                 }
